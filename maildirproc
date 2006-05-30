@@ -1,0 +1,408 @@
+#! /usr/bin/env python
+
+import email.Header
+import email.Parser
+import os
+import re
+import sha
+import shutil
+import socket
+import subprocess
+import sys
+import time
+from optparse import OptionParser
+
+def sha1sum(path):
+    fp = open(path)
+    sha_obj = sha.new()
+    while True:
+        data = fp.read(4096)
+        if not data:
+            break
+        sha_obj.update(data)
+    return sha_obj.hexdigest()
+
+class Header(object):
+    def __init__(self, x):
+        xxx
+
+    def __str__(self):
+        xxx
+
+    def contains(self, string):
+        xxx
+
+    def matches(self, regexp):
+        xxx
+
+class MailTarget(object):
+    def __init__(self, mail):
+        self._mail = mail
+
+    def contains(self, string):
+        xxx
+
+    def matches(self, regexp):
+        xxx
+
+class Mail(object):
+    def __init__(self, processor, maildir, mail_path):
+        self._processor = processor
+        self.maildir = maildir
+        self.path = mail_path
+        self.target = MailTarget(self)
+
+    def __getitem__(self, header_name):
+        xxx
+
+    def copy(self, maildir):
+        xxx
+
+    def delete(self):
+        xxx
+
+    def forward(self, address):
+        xxx
+
+    def forward_copy(self, address):
+        xxx
+
+    def from_mailing_list(self, list_name):
+        xxx
+
+    def move(self, maildir):
+        xxx
+
+class MaildirProcessor(object):
+    def __init__(self, log_fp=sys.stdout):
+        self._log_fp = log_fp
+        self._maildir_base = "/"
+        self._deliveries = 0
+
+    # ----------------------------------------------------------------
+
+    def set_logfile(self, path_or_fp):
+        if isinstance(path_or_fp, basestring):
+            self._log_fp = open(os.path.expanduser(path_or_fp), "a")
+        else:
+            self._log_fp = path_or_fp
+    logfile = property(fset=set_logfile)
+
+    def get_maildir_base(self):
+        return self._maildir_base
+    def set_maildir_base(self, path):
+        self._maildir_base = os.path.expanduser(path)
+    maildir_base = property(get_maildir_base, set_maildir_base)
+
+    def get_maildirs(self):
+        return self._maildirs
+    def set_maildirs(self, path):
+        self._maildirs = path
+    maildirs = property(get_maildirs, set_maildirs)
+
+    # ----------------------------------------------------------------
+
+    def __iter__(self):
+        self.log("")
+        self.log("Starting maildirproc.")
+        self.log("Time is: %s" % time.strftime("%Y-%m-%d %H:%M:%S %Z"))
+
+        mtime_map = {}
+        while True:
+            for maildir in self._maildirs:
+                maildir_path = os.path.join(self._maildir_base, maildir)
+                for subdir in ["cur", "new"]:
+                    subdir_path = os.path.join(maildir_path, subdir)
+                    curmtime = os.path.getmtime(subdir_path)
+                    if curmtime != mtime_map.setdefault(subdir_path, 0):
+                        if curmtime < int(time.time()):
+                            # If curmtime == int(time.time()) we can't
+                            # be sure that everything has been
+                            # processed; a new mail can be delivered
+                            # later the same second.
+                            mtime_map[subdir_path] = curmtime
+                        for mail_file in os.listdir(subdir_path):
+                            mail_path = os.path.join(subdir_path, mail_file)
+                            yield Mail(self, maildir, mail_path)
+            time.sleep(1)
+
+    def log(self, text):
+        self._log_fp.write("%s\n" % text)
+        self._log_fp.flush()
+
+    # ----------------------------------------------------------------
+
+    def _create_maildir_name(self):
+        """Create and return a unique name for a Maildir message."""
+        hostname = socket.gethostname()
+        hostname = hostname.replace("/", "\\057")
+        hostname = hostname.replace(":", "\\072")
+        now = time.time()
+        delivery_identifier = "M%dP%dQ%d" % (
+            round((now - int(now)) * 1000000),
+            os.getpid(),
+            self._deliveries)
+        self._deliveries += 1
+        return "%d.%s.%s" % (now, delivery_identifier, hostname)
+
+    def _err(self, text):
+        self.log("Error: %s" % text)
+        sys.stderr.write("Error: %s\n" % text)
+
+    def _handle_mail(self, source, path):
+        try:
+            fp = open(path)
+        except IOError, e:
+            # The file was probably moved by someone else.
+            self.log("Error opening %s: %s" % (path, e))
+            return
+        headers = email.Parser.Parser().parse(fp, headersonly=True)
+        fp.close()
+        self.log("")
+        self.log("Handling mail %s:" % path)
+        self.log("Message-ID: %r" % headers["Message-ID"])
+        self.log("SHA1:       %r" % sha1sum(path))
+        self.log("Subject:    %r" % headers["Subject"])
+        self.log("Date:       %r" % headers["Date"])
+        self.log("From:       %r" % headers["From"])
+        self.log("To:         %r" % headers["To"])
+        self.log("Cc:         %r" % headers["Cc"])
+        for (description, predicate, action) in self._rules[source]:
+            if predicate(headers, path):
+                self.log("--> Rule %r matched" % description)
+                if action.execute(path):
+                    return
+        self.log("No terminal rule matched. Doing nothing.")
+
+    def _handle_mail_in_directory(self, source, subdir_path):
+        for filename in os.listdir(subdir_path):
+            path = os.path.join(subdir_path, filename)
+            self._handle_mail(source, path)
+
+    def _safely_move_file(self, source, target):
+        # os.rename() silently overwrites files. os.link() doesn't,
+        # and throws exception on error.
+        try:
+            os.link(source, target)
+        except OSError, e:
+            # The file was probably moved.
+            self._err("Error linking %s to %s: %s" % (source, target, e))
+            return
+        try:
+            os.unlink(source)
+        except OSError, e:
+            # The file was probably moved by someone else. I think
+            # deleting the destination file now should be safe, but
+            # I'll let it remain until I am completely convinced it is
+            # perfectly safe. The same mail twice is very cheap, a
+            # deleted mail can be very expensive.
+            self._err("Error unlinking %s: %s" % (source, e))
+
+class CopyAction:
+    def __init__(self, processor, target_dirs):
+        self._processor = processor
+        self._target_dirs = target_dirs
+
+    def execute(self, path):
+        for x in self._target_dirs:
+            self._copy(path, x)
+        return False
+
+    def _copy(self, path, target_dir):
+        target = os.path.join(
+            self._processor.get_maildir_base(),
+            target_dir,
+            "new",
+            self._processor._create_maildir_name())
+        self._processor.log("==> Copying to %s" % target_dir)
+
+        try:
+            source_fp = open(path)
+        except IOError, e:
+            # The file was probably moved.
+            self._err("Error opening %s: %s" % (path, e))
+            return False
+
+        tmp_target = os.path.join(
+            self._processor.get_maildir_base(),
+            target_dir,
+            "tmp",
+            self._processor._create_maildir_name())
+        tmp_target_fp = os.fdopen(
+            os.open(tmp_target, os.O_WRONLY | os.O_CREAT | os.O_EXCL),
+            "w")
+        try:
+            shutil.copyfileobj(source_fp, tmp_target_fp)
+        except IOError, e:
+            self._err("Error copying %s to: %s" % (path, tmp_target, e))
+            return False
+        source_fp.close()
+        tmp_target_fp.close()
+
+        self._processor.safely_move_file(tmp_target, target)
+
+class ForwardAction:
+    def __init__(self, processor, target_addresses, is_terminal=True):
+        self._processor = processor
+        self._target_addresses = list(target_addresses)
+        self._is_terminal = is_terminal
+
+    def execute(self, path):
+        if self._is_terminal:
+            action_text = "Forwarding"
+        else:
+            action_text = "Forwarding copy"
+        self._processor.log(
+            "==> %s to %r" % (action_text, self._target_addresses))
+        try:
+            source_fp = open(path)
+        except IOError, e:
+            # The file was probably moved.
+            self._err("Error opening %s: %s" % (path, e))
+            return self._is_terminal
+
+        p = subprocess.Popen(
+            ["/usr/sbin/sendmail", "-i", "--"] + self._target_addresses,
+            stdin=subprocess.PIPE)
+        shutil.copyfileobj(source_fp, p.stdin)
+        p.stdin.close()
+        p.wait()
+        source_fp.close()
+
+        if self._is_terminal:
+            try:
+                os.unlink(path)
+            except OSError, e:
+                # The file was probably moved.
+                self._err("Error unlinking %s: %s" % (path, e))
+        return self._is_terminal
+
+class ForwardCopyAction(ForwardAction):
+    def __init__(self, processor, target_addresses):
+        ForwardAction.__init__(self, processor, target_addresses, False)
+
+class MoveAction:
+    def __init__(self, processor, target_dir):
+        self._processor = processor
+        self._target_dir = target_dir
+
+    def execute(self, path):
+        target = os.path.join(
+            self._processor.get_maildir_base(),
+            self._target_dir,
+            "new",
+            self._processor._create_maildir_name())
+        self._processor.log("==> Moving to %s" % target)
+
+        self._processor.safely_move_file(path, target)
+        return True
+
+######################################################################
+
+def main(argv):
+    def always(headers, path):
+        return True
+
+    def copy(*target_dirs):
+        return CopyAction(processor, target_dirs)
+
+    def forward(*target_addresses):
+        return ForwardAction(processor, target_addresses)
+
+    def forward_copy(*target_addresses):
+        return ForwardCopyAction(processor, target_addresses)
+
+    def hcontains(headers, headername, string):
+        string = string.lower()
+        for header in headers.get_all(headername, []):
+            value_parts = [x for (x, y) in email.Header.decode_header(header)]
+            value = "".join(value_parts)
+            if string in value.lower():
+                return True
+        return False
+
+    def header_contains(headername, string):
+        def predicate(headers, path):
+            return hcontains(headers, headername, string)
+        return predicate
+
+    def header_matches(headername, regexp):
+        def predicate(headers, path):
+            return hmatches(headers, headername, regexp)
+        return predicate
+
+    def hmatches(headers, headername, regexp):
+        re_obj = re.compile(regexp, re.IGNORECASE)
+        for header in headers.get_all(headername, []):
+            value_parts = [x for (x, y) in email.Header.decode_header(header)]
+            value = "".join(value_parts)
+            if re_obj.search(value):
+                return True
+        return False
+
+    def mailing_list(listname):
+        listname = listname.lower()
+        def predicate(headers, path):
+            for headername in [
+                    "Delivered-To", "X-BeenThere", "X-Mailing-List"]:
+                if hcontains(headers, headername, listname):
+                    return True
+            return False
+        return predicate
+
+    def move(target_dir):
+        return MoveAction(processor, target_dir)
+
+    def to_or_cc_contains(address):
+        def predicate(headers, path):
+            for headername in ["To", "Cc"]:
+                if hcontains(headers, headername, address):
+                    return True
+            return False
+        return predicate
+
+    def to_or_cc_matches(regexp):
+        def predicate(headers, path):
+            for headername in ["To", "Cc"]:
+                if hmatches(headers, headername, regexp):
+                    return True
+            return False
+        return predicate
+
+    default_rulefile_location = "~/.maildirprocrc"
+    parser = OptionParser(version="0.1")
+    parser.add_option(
+        "-l",
+        "--logfile",
+        type="string",
+        dest="logfile",
+        help=("send log to LOGFILE instead of standard output (overridable by"
+              " a call to set_logfile in the rule file)"),
+        default=None)
+    parser.add_option(
+        "-r",
+        "--rcfile",
+        type="string",
+        dest="rcfile",
+        help="use rc file RCFILE instead of the default (%s)" % (
+            default_rcfile_location),
+        default=default_rcfile_location)
+    (options, args) = parser.parse_args(argv[1:])
+
+    rcfile_path = os.path.expanduser(options.rcfile)
+    if options.logfile is None:
+        log_fp = sys.stdout
+    else:
+        log_fp = open(os.path.expanduser(options.logfile), "a")
+
+    processor = MaildirProcessor(log_fp)
+    environment = {"processor", processor}
+    while True:
+        execfile(rcfile_path, environment)
+        os.sleep(1)
+
+if __name__ == "__main__":
+    try:
+        main(sys.argv)
+    except KeyboardInterrupt:
+        pass

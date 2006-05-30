@@ -1,10 +1,11 @@
-Example:
-
+# Default: log to standard output.
 processor.logfile = "~/.maildirproc.log"
+
+# processor.maildir_base = ["~/maildirs"] # Default: "/"
 processor.maildirs = ["~/Maildir"]
 
 for mail in processor:
-    if mail.h["X-Spam-Status"].startswith("Yes"):
+    if mail["X-Spam-Status"].startswith("Yes"):
         mail.delete()
     elif mail.target.contains("foo@example.com"):
         mail.move("~/MaildirFoo")

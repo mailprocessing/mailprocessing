@@ -1,4 +1,36 @@
 #! /usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""maildirproc -- Maildir processor.
+
+This program is a sort-of replacement for procmail[1]. Like procmail,
+it can be used for sorting email, but it is not a delivery agent. 
+Instead it monitors existing maildir[2] mail boxes and performs
+actions on already delivered mail.
+
+Features:
+
+  * Robust. Tries hard to never lose any mail, unless explictly
+    forwarded or deleted by mail handling rules.
+  * Simple, yet powerful. The mail processing logic is defined by a
+    Python program instead of by cryptic rules. This means that it is
+    easy to programmatically express custom mail handling behaviour.
+
+Limitations:
+
+  * Only works on maildir[2] mail boxes.
+  * Not a delivery agent, so it can't be used to bounce or rewrite
+    incoming mail.
+
+maildirproc was inspired by maildird[3], written by Jörgen Cederlöf.
+
+Joel Rosdahl <joel@rosdahl.net>
+
+---
+[1] http://www.procmail.org
+[2] http://en.wikipedia.org/wiki/Maildir
+[3] http://www.lysator.liu.se/~jc/maildird.html
+"""
 
 import email.Header
 import email.Parser
@@ -39,21 +71,22 @@ class MailHeader(object):
     def contains(self, string):
         result = string.lower() in self._text.lower()
         if result:
-            x = ""
+            result_text = "contains"
         else:
-            x = " not"
+            result_text = "does not contain"
         self._mail._processor.log(
-            "--> Header \"%s\" does%s contain %r" % (self._name, x, string))
+            "--> Header \"%s\" %s %r" % (self._name, result_text, string))
         return result
 
     def matches(self, regexp):
         result = re.match(regexp, self._text, re.IGNORECASE | re.MULTILINE)
         if result:
-            x = ""
+            result_text = "matches"
         else:
-            x = " not"
+            result_text = "does not match"
         self._mail._processor.log(
-            "--> Header \"%s\" does%s match %r" % (self._name, x, regexp))
+            "--> Header \"%s\" %s match %r" % (
+            self._name, result_text, regexp))
         return result
 
 
@@ -66,22 +99,24 @@ class MailTarget(object):
     def contains(self, string):
         result = self._helper("contains", string)
         if result:
-            x = ""
+            result_text = "contains"
         else:
-            x = " not"
+            result_text = "does not contain"
         self._mail._processor.log(
-            "--> Target does%s contain %r" % (x, string))
+            "--> Target %s %r" % (result_text, string))
         return result
 
     def matches(self, regexp):
         result = self._helper("matches", regexp)
         if result:
-            x = ""
+            result_text = "matches"
         else:
-            x = " not"
+            result_text = "does not match"
         self._mail._processor.log(
-            "--> Target does%s match %r" % (x, string))
+            "--> Target %s match %r" % (result_text, string))
         return result
+
+    # ----------------------------------------------------------------
 
     def _helper(self, method_name, arg):
         for header in self._target_headers:
@@ -170,6 +205,8 @@ class DryRunMail(MailBase):
 
     def move(self, maildir):
         self._processor.log("==> Moving to %s" % maildir)
+
+    # ----------------------------------------------------------------
 
     def _forward(self, delete, addresses):
         if isinstance(addresses, basestring):
@@ -284,8 +321,6 @@ class MaildirProcessor(object):
         else:
             self._mail_class = Mail
 
-    # ----------------------------------------------------------------
-
     def set_logfile(self, path_or_fp):
         if isinstance(path_or_fp, basestring):
             self._log_fp = open(os.path.expanduser(path_or_fp), "a")
@@ -304,8 +339,6 @@ class MaildirProcessor(object):
     def set_maildirs(self, maildirs):
         self._maildirs = maildirs
     maildirs = property(get_maildirs, set_maildirs)
-
-    # ----------------------------------------------------------------
 
     def __iter__(self):
         self.log("")
@@ -418,8 +451,9 @@ def main(argv):
         type="string",
         dest="rcfile",
         metavar="FILE",
-        help=("use the given rc file instead of the default (%s)" % (
-            default_rcfile_location)),
+        help=(
+            "use the given rc file instead of the default (%s)" % (
+                default_rcfile_location)),
         default=default_rcfile_location)
     (options, args) = parser.parse_args(argv[1:])
 

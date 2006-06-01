@@ -12,6 +12,7 @@ import sys
 import time
 from optparse import OptionParser
 
+
 def sha1sum(path):
     fp = open(path)
     sha_obj = sha.new()
@@ -21,6 +22,7 @@ def sha1sum(path):
             break
         sha_obj.update(data)
     return sha_obj.hexdigest()
+
 
 class MailHeader(object):
     def __init__(self, mail, name, text):
@@ -54,6 +56,7 @@ class MailHeader(object):
             "--> Header \"%s\" does%s match %r" % (self._name, x, regexp))
         return result
 
+
 class MailTarget(object):
     _target_headers = ["cc", "to"]
 
@@ -86,6 +89,7 @@ class MailTarget(object):
             if m(arg):
                 return True
         return False
+
 
 class MailBase(object):
     def __init__(self, processor, maildir, mail_path):
@@ -150,6 +154,7 @@ class MailBase(object):
                 value = "\n".join(value_parts)
                 self._headers[name.lower()] = value
 
+
 class DryRunMail(MailBase):
     def copy(self, maildir):
         self._processor.log("==> Copying to %s" % maildir)
@@ -177,6 +182,7 @@ class DryRunMail(MailBase):
             copy = ""
         self._processor.log("==> Forwarding%s to %r" % (copy, addresses))
 
+
 class Mail(MailBase):
     def copy(self, maildir):
         self._processor.log("==> Copying to %s" % maildir)
@@ -199,7 +205,7 @@ class Mail(MailBase):
             maildir,
             "new",
             self._processor._create_maildir_name())
-        self._processor._move(self.path, target)
+        self._processor._rename(self.path, target)
 
     # ----------------------------------------------------------------
 
@@ -228,7 +234,7 @@ class Mail(MailBase):
         source_fp.close()
         tmp_target_fp.close()
 
-        self._processor._move(tmp_target, target)
+        self._processor._rename(tmp_target, target)
 
     def _delete(self):
         try:
@@ -264,6 +270,7 @@ class Mail(MailBase):
 
         if delete:
             self._delete()
+
 
 class MaildirProcessor(object):
     def __init__(self, log_fp=sys.stdout, dry_run=False, run_once=False):
@@ -319,14 +326,14 @@ class MaildirProcessor(object):
                 maildir_path = os.path.join(self._maildir_base, maildir)
                 for subdir in ["cur", "new"]:
                     subdir_path = os.path.join(maildir_path, subdir)
-                    curmtime = os.path.getmtime(subdir_path)
-                    if curmtime != mtime_map.setdefault(subdir_path, 0):
-                        if curmtime < int(time.time()):
-                            # If curmtime == int(time.time()) we can't
-                            # be sure that everything has been
-                            # processed; a new mail can be delivered
+                    cur_mtime = os.path.getmtime(subdir_path)
+                    if cur_mtime != mtime_map.setdefault(subdir_path, 0):
+                        if cur_mtime < int(time.time()):
+                            # If cur_mtime == int(time.time()) we
+                            # can't be sure that everything has been
+                            # processed; a new mail may be delivered
                             # later the same second.
-                            mtime_map[subdir_path] = curmtime
+                            mtime_map[subdir_path] = cur_mtime
                         for mail_file in os.listdir(subdir_path):
                             mail_path = os.path.join(subdir_path, mail_file)
                             yield self._mail_class(self, maildir, mail_path)
@@ -357,13 +364,11 @@ class MaildirProcessor(object):
         self.log("Error: %s" % text)
         sys.stderr.write("maildirproc: Error: %s\n" % text)
 
-    def _move(self, source, target):
-        # TODO: Handle the case that source and target are on
-        # different file systems.
+    def _rename(self, source, target):
         try:
             os.rename(source, target)
         except OSError, e:
-            self._err("Error moving %s to %s: %s" % (source, target, e))
+            self._err("Error renaming %s to %s: %s" % (source, target, e))
 
 ######################################################################
 
@@ -436,6 +441,7 @@ def main(argv):
         processor._err("Could not open RC file: %s" % e)
     else:
         exec fp in environment
+
 
 if __name__ == "__main__":
     try:

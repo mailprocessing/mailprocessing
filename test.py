@@ -1,0 +1,291 @@
+#! /usr/bin/env python
+
+import os
+import shutil
+import subprocess
+import textwrap
+from os.path import join as joinpath
+from unittest import TestCase, main
+
+######################################################################
+
+class TestFixture(TestCase):
+    _maildir_dir = "test.maildir.%d" % os.getpid()
+    _testdata_dir = "test.testdata.%d" % os.getpid()
+    _testmail_data_a = [
+        "From: Sender <sender@example.com>\n",
+        "To: Recipient <recipient@example.com>\n",
+        "Cc: Carbon Copy <carbon.copy@example.com>\n",
+        "Subject: A subject\n",
+        "Delivered-To: Alpha\n",
+        "X-BeenThere: Bravo\n",
+        "X-Mailing-List: Charlie\n",
+        "\n",
+        "Body.\n",
+        ]
+
+    def setUp(self):
+        shutil.rmtree(self._testdata_dir, True)
+        os.mkdir(self._testdata_dir)
+        shutil.rmtree(self._maildir_dir, True)
+        os.mkdir(self._maildir_dir)
+
+    def tearDown(self):
+        shutil.rmtree(self._testdata_dir, True)
+        shutil.rmtree(self._maildir_dir, True)
+
+    def makedirs(self, maildirs):
+        for md in maildirs:
+            for d in ["cur", "new", "tmp"]:
+                os.makedirs(joinpath(self._maildir_dir, md, d))
+
+    def create(self, name, dest):
+        fp = open(joinpath(self._maildir_dir, dest), "w")
+        fp.write("".join(getattr(self, "_testmail_data_%s" % name)))
+        fp.close()
+
+    def run_mdp(self, rc, maildirs):
+        argv = [
+            "./maildirproc",
+            "--once",
+            "-l", "/dev/null",
+            "-r", "-",
+            "-b", self._maildir_dir,
+            ]
+        for maildir in maildirs:
+            argv.extend(["-m", maildir])
+        sh_cmd = "-c 'a=%s/delivered; echo $1 >$a; cat >>$a'" % (
+            self._testdata_dir)
+        p = subprocess.Popen(
+            argv,
+            stdin=subprocess.PIPE,
+            env={
+                "SENDMAIL": "/bin/sh",
+                "SENDMAILFLAGS": sh_cmd,
+                },
+            )
+        p.communicate(textwrap.dedent(rc))
+        p.wait()
+
+    def verify_result(self, result):
+        actual = {}
+        for maildir in os.listdir(self._maildir_dir):
+            i = 0
+            for subdir in ["cur", "new"]:
+                path = joinpath(self._maildir_dir, maildir, subdir)
+                i += len(os.listdir(path))
+            actual[maildir] = i
+        self.assertEqual(result, actual)
+
+
+class TestBasics(TestFixture):
+    def test_empty(self):
+        rc = ""
+
+        self.makedirs(["incoming"])
+        self.create("a", "incoming/new/a")
+        self.run_mdp(rc, ["incoming"])
+        self.verify_result({"incoming": 1})
+
+    def test_move(self):
+        rc = '''
+            for mail in processor:
+                mail.move("dest")
+            '''
+
+        self.makedirs(["incoming", "dest"])
+        self.create("a", "incoming/new/a")
+        self.run_mdp(rc, ["incoming"])
+        self.verify_result({"incoming": 0, "dest": 1})
+        self.assertEqual(
+            len(os.listdir(joinpath(self._maildir_dir, "dest", "cur"))),
+            0)
+        self.assertEqual(
+            len(os.listdir(joinpath(self._maildir_dir, "dest", "tmp"))),
+            0)
+
+    def test_copy(self):
+        rc = '''
+            for mail in processor:
+                mail.copy("dest")
+            '''
+
+        self.makedirs(["incoming", "dest"])
+        self.create("a", "incoming/new/a")
+        self.run_mdp(rc, ["incoming"])
+        self.verify_result({"incoming": 1, "dest": 1})
+
+    def test_forward(self):
+        rc = '''
+            for mail in processor:
+                mail.forward("foo@example.com")
+            '''
+
+        self.makedirs(["incoming"])
+        self.create("a", "incoming/new/a")
+        self.run_mdp(rc, ["incoming"])
+        self.verify_result({"incoming": 0})
+
+        expected = ["foo@example.com\n"] + self._testmail_data_a
+        fp = open(joinpath(self._testdata_dir, "delivered"))
+        lines = fp.readlines()
+        self.assertEqual(lines, expected)
+
+    def test_forward_copy(self):
+        rc = '''
+            for mail in processor:
+                mail.forward_copy("foo@example.com")
+            '''
+
+        self.makedirs(["incoming"])
+        self.create("a", "incoming/new/a")
+        self.run_mdp(rc, ["incoming"])
+        self.verify_result({"incoming": 1})
+
+        expected = ["foo@example.com\n"] + self._testmail_data_a
+        fp = open(joinpath(self._testdata_dir, "delivered"))
+        lines = fp.readlines()
+        self.assertEqual(lines, expected)
+
+    def test_delete(self):
+        rc = '''
+            for mail in processor:
+                mail.delete()
+            '''
+
+        self.makedirs(["incoming"])
+        self.create("a", "incoming/new/a")
+        self.run_mdp(rc, ["incoming"])
+        self.verify_result({"incoming": 0})
+
+    def test_multiple_mail(self):
+        rc = '''
+            for mail in processor:
+                mail.move("dest")
+            '''
+
+        self.makedirs(["incoming", "dest"])
+        for i in range(10):
+            self.create("a", "incoming/new/%d" % i)
+        self.run_mdp(rc, ["incoming"])
+        self.verify_result({"incoming": 0, "dest": 10})
+
+
+class TestHeaderMatches(TestFixture):
+    def test_negative_header_matches(self):
+        rc = '''
+            for mail in processor:
+                if mail["from"].matches("^sender@example\\.com"):
+                    mail.move("dest")
+            '''
+
+        self.makedirs(["incoming", "dest"])
+        self.create("a", "incoming/new/a")
+        self.run_mdp(rc, ["incoming"])
+        self.verify_result({"incoming": 1, "dest": 0})
+
+    def test_positive_header_matches(self):
+        rc = '''
+            for mail in processor:
+                if mail["from"].matches("sender@example\\.com"):
+                    mail.move("dest")
+            '''
+
+        self.makedirs(["incoming", "dest"])
+        self.create("a", "incoming/new/a")
+        self.run_mdp(rc, ["incoming"])
+        self.verify_result({"incoming": 0, "dest": 1})
+
+
+class TestHeaderContains(TestFixture):
+    def test_negative_header_contains(self):
+        rc = '''
+            for mail in processor:
+                if mail["from"].contains("foo"):
+                    mail.move("dest")
+            '''
+
+        self.makedirs(["incoming", "dest"])
+        self.create("a", "incoming/new/a")
+        self.run_mdp(rc, ["incoming"])
+        self.verify_result({"incoming": 1, "dest": 0})
+
+    def test_positive_header_contains(self):
+        rc = '''
+            for mail in processor:
+                if mail["from"].contains("sender@example.com"):
+                    mail.move("dest")
+            '''
+
+        self.makedirs(["incoming", "dest"])
+        self.create("a", "incoming/new/a")
+        self.run_mdp(rc, ["incoming"])
+        self.verify_result({"incoming": 0, "dest": 1})
+
+
+class TestTargetContains(TestFixture):
+    def test_target_contains(self):
+        rc = '''
+            for mail in processor:
+                if mail.target.contains("recipient@example.com"):
+                    mail.copy("dest")
+                if mail.target.contains("carbon.copy@example.com"):
+                    mail.move("dest")
+            '''
+
+        self.makedirs(["incoming", "dest"])
+        self.create("a", "incoming/new/a")
+        self.run_mdp(rc, ["incoming"])
+        self.verify_result({"incoming": 0, "dest": 2})
+
+
+class TestTargetMatches(TestFixture):
+    def test_target_matches(self):
+        rc = '''
+            for mail in processor:
+                if mail.target.matches("recipient@example\\.com"):
+                    mail.copy("dest")
+                if mail.target.matches("carbon\\.copy@example\\.com"):
+                    mail.move("dest")
+            '''
+
+        self.makedirs(["incoming", "dest"])
+        self.create("a", "incoming/new/a")
+        self.run_mdp(rc, ["incoming"])
+        self.verify_result({"incoming": 0, "dest": 2})
+
+
+class TestFromMailingList(TestFixture):
+    def test_from_mailing_list(self):
+        rc = '''
+            for mail in processor:
+                if mail.from_mailing_list("recipient@example.com"):
+                    mail.copy("to")
+                if mail.from_mailing_list("carbon.copy@example.com"):
+                    mail.copy("cc")
+                if mail.from_mailing_list("alpha"):
+                    mail.copy("delivered-to")
+                if mail.from_mailing_list("bravo"):
+                    mail.copy("x-beenthere")
+                if mail.from_mailing_list("charlie"):
+                    mail.copy("x-mailing-list")
+            '''
+
+        self.makedirs(
+            ["incoming", "to", "cc", "delivered-to",
+             "x-beenthere", "x-mailing-list"])
+        self.create("a", "incoming/new/a")
+        self.run_mdp(rc, ["incoming"])
+        self.verify_result({
+            "incoming": 1,
+            "to": 0,
+            "cc": 0,
+            "delivered-to": 1,
+            "x-beenthere": 1,
+            "x-mailing-list": 1,
+            })
+
+######################################################################
+
+if __name__ == "__main__":
+    main()

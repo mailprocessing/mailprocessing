@@ -1,36 +1,52 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""maildirproc -- Maildir processor.
+# Copyright (C) 2006 Joel Rosdahl <joel@rosdahl.net>
+# 
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
+# 02111-1307, USA.
 
-This program is a sort-of replacement for procmail[1]. Like procmail,
-it can be used for sorting email, but it is not a delivery agent. 
-Instead it monitors existing maildir[2] mail boxes and performs
-actions on already delivered mail.
+"""maildirproc -- maildir processor
 
-Features:
+If
 
-  * Robust. Tries hard to never lose any mail, unless explictly
-    forwarded or deleted by mail handling rules.
-  * Simple, yet powerful. The mail processing logic is defined by a
-    Python program instead of by cryptic rules. This means that it is
-    easy to programmatically express custom mail handling behaviour.
+  * you want to automatically sort your e-mail using some given logic,
+  * you use maildir[2] mail boxes,
+  * you use (or consider using) procmail for the task, but
+    - you think it's too terse, or
+    - you think it's too ugly, or
+    - you think it's too limited, or
+    - you just want an alternative,
+  * you don't need or want a delivery agent but instead something that
+    acts on already delivered mail,
+  * you want something simple and robust yet powerful,
+  * you want to express the mail processing logic in an imperative
+    language (Python) instead of in declarative rules,
+  * you want to be able to write custom mail handling logic (in
+    Python) without the need to write external programs,
 
-Limitations:
-
-  * Only works on maildir[2] mail boxes.
-  * Not a delivery agent, so it can't be used to bounce or rewrite
-    incoming mail.
+then maildirproc may be for you.
 
 maildirproc was inspired by maildird[3], written by Jörgen Cederlöf.
-
-Joel Rosdahl <joel@rosdahl.net>
 
 ---
 [1] http://www.procmail.org
 [2] http://en.wikipedia.org/wiki/Maildir
 [3] http://www.lysator.liu.se/~jc/maildird.html
 """
+
 
 import email.Header
 import email.Parser
@@ -43,6 +59,10 @@ import subprocess
 import sys
 import time
 from optparse import OptionParser
+
+
+def iso_8601_now():
+    return time.strftime("%Y-%m-%d %H:%M:%S %Z")
 
 
 def sha1sum(path):
@@ -79,7 +99,7 @@ class MailHeader(object):
         return result
 
     def matches(self, regexp):
-        result = re.match(regexp, self._text, re.IGNORECASE | re.MULTILINE)
+        result = re.search(regexp, self._text, re.IGNORECASE | re.MULTILINE)
         if result:
             result_text = "matches"
         else:
@@ -91,7 +111,7 @@ class MailHeader(object):
 
 
 class MailTarget(object):
-    _target_headers = ["cc", "to"]
+    _target_headers = ["to", "cc"]
 
     def __init__(self, mail):
         self._mail = mail
@@ -113,7 +133,7 @@ class MailTarget(object):
         else:
             result_text = "does not match"
         self._mail._processor.log(
-            "--> Target %s match %r" % (result_text, string))
+            "--> Target %s match %r" % (result_text, regexp))
         return result
 
     # ----------------------------------------------------------------
@@ -133,8 +153,8 @@ class MailBase(object):
         self._path = mail_path
         self._target = MailTarget(self)
         self._headers = {}
-        self._parse_mail()
-        self._log_processing()
+        if self._parse_mail():
+            self._log_processing()
 
     def get_maildir(self):
         return self._maildir
@@ -154,9 +174,10 @@ class MailBase(object):
 
     def from_mailing_list(self, list_name):
         list_name = list_name.lower()
+        result = False
         for headername in [
-                "Delivered-To", "X-BeenThere", "X-Mailing-List"]:
-            if list_name in self._headers.get(headername, ""):
+                "delivered-to", "x-beenthere", "x-mailing-list"]:
+            if self[headername].contains(list_name):
                 return True
         return False
 
@@ -164,9 +185,10 @@ class MailBase(object):
 
     def _log_processing(self):
         self._processor.log("")
-        self._processor.log("Handling mail %s:" % self.path)
-        self._processor.log("Message-ID: %r" % self["Message-ID"])
+        self._processor.log("New mail detected at %s:" % iso_8601_now())
+        self._processor.log("Path:       %r" % self.path)
         self._processor.log("SHA1:       %r" % sha1sum(self.path))
+        self._processor.log("Message-ID: %r" % self["Message-ID"])
         self._processor.log("Subject:    %r" % self["Subject"])
         self._processor.log("Date:       %r" % self["Date"])
         self._processor.log("From:       %r" % self["From"])
@@ -178,8 +200,8 @@ class MailBase(object):
             fp = open(self.path)
         except IOError, e:
             # The file was probably moved by someone else.
-            self._processor._err("Error opening %s: %s" % (path, e))
-            return
+            self._processor.log("Error: Could not open %s: %s" % (path, e))
+            return False
         headers = email.Parser.Parser().parse(fp, headersonly=True)
         fp.close()
         for name in headers.keys():
@@ -188,6 +210,7 @@ class MailBase(object):
                     x for (x, y) in email.Header.decode_header(header)]
                 value = "\n".join(value_parts)
                 self._headers[name.lower()] = value
+        return True
 
 
 class DryRunMail(MailBase):
@@ -230,7 +253,7 @@ class Mail(MailBase):
         self._delete()
 
     def forward(self, addresses):
-        self._forward(True, address)
+        self._forward(True, addresses)
 
     def forward_copy(self, addresses):
         self._forward(False, addresses)
@@ -251,7 +274,7 @@ class Mail(MailBase):
             source_fp = open(self.path)
         except IOError, e:
             # The file was probably moved.
-            self._err("Error opening %s: %s" % (self.path, e))
+            self.log("Error: Could not open %s: %s" % (self.path, e))
             return False
 
         tmp_target = os.path.join(
@@ -265,12 +288,18 @@ class Mail(MailBase):
         try:
             shutil.copyfileobj(source_fp, tmp_target_fp)
         except IOError, e:
-            self._processor._err(
-                "Error copying %s to: %s" % (self.path, tmp_target, e))
+            self._processor.log(
+                "Error: Could not copy %s to %s: %s" % (
+                    self.path, tmp_target, e))
             return False
         source_fp.close()
         tmp_target_fp.close()
 
+        target = os.path.join(
+            self._processor.maildir_base,
+            maildir,
+            "new",
+            self._processor._create_maildir_name())
         self._processor._rename(tmp_target, target)
 
     def _delete(self):
@@ -278,27 +307,34 @@ class Mail(MailBase):
             os.unlink(self.path)
         except OSError, e:
             # The file was probably moved.
-            self._processor._err("Error unlinking %s: %s" % (self.path, e))
+            self._processor.log(
+                "Error: Could not unlink %s: %s" % (self.path, e))
 
     def _forward(self, delete, addresses):
         if isinstance(addresses, basestring):
             addresses = [addresses]
         else:
             addresses = list(addresses)
-        if not delete:
-            copy = " copy"
-        else:
+        if delete:
             copy = ""
+        else:
+            copy = " copy"
         self._processor.log("==> Forwarding%s to %r" % (copy, addresses))
         try:
             source_fp = open(self.path)
         except IOError, e:
             # The file was probably moved.
-            self._processor._err("Error opening %s: %s" % (self.path, e))
+            self._processor.log(
+                "Error: Could not open %s: %s" % (self.path, e))
             return
 
         p = subprocess.Popen(
-            ["/usr/sbin/sendmail", "-i", "--"] + addresses,
+            "%s %s -- %s" % (
+                self._processor.sendmail,
+                self._processor.sendmail_flags,
+                " ".join(addresses)
+                ),
+            shell=True,
             stdin=subprocess.PIPE)
         shutil.copyfileobj(source_fp, p.stdin)
         p.stdin.close()
@@ -316,6 +352,8 @@ class MaildirProcessor(object):
         self._maildir_base = None
         self._deliveries = 0
         self._maildirs = []
+        self._sendmail = "/usr/sbin/sendmail"
+        self._sendmail_flags = "-i"
         if dry_run:
             self._mail_class = DryRunMail
         else:
@@ -340,17 +378,28 @@ class MaildirProcessor(object):
         self._maildirs = maildirs
     maildirs = property(get_maildirs, set_maildirs)
 
+    def get_sendmail(self):
+        return self._sendmail
+    def set_sendmail(self, sendmail):
+        self._sendmail = sendmail
+    sendmail = property(get_sendmail, set_sendmail)
+
+    def get_sendmail_flags(self):
+        return self._sendmail_flags
+    def set_sendmail_flags(self, sendmail_flags):
+        self._sendmail_flags = sendmail_flags
+    sendmail_flags = property(get_sendmail_flags, set_sendmail_flags)
+
     def __iter__(self):
         self.log("")
-        timestamp = time.strftime("%Y-%m-%d %H:%M:%S %Z")
-        self.log("Starting maildirproc at %s" % timestamp)
+        self.log("Starting maildirproc at %s" % iso_8601_now())
 
         if self.maildir_base is None:
-            self._err("Maildir base directory not set")
+            self.log("Error: Maildir base directory not set")
             return
 
         if not self._maildirs:
-            self._err("No maildirs to process")
+            self.log("Error: No maildirs to process")
             return
 
         mtime_map = {}
@@ -393,22 +442,23 @@ class MaildirProcessor(object):
         self._deliveries += 1
         return "%d.%s.%s" % (now, delivery_identifier, hostname)
 
-    def _err(self, text):
-        self.log("Error: %s" % text)
-        sys.stderr.write("maildirproc: Error: %s\n" % text)
-
     def _rename(self, source, target):
         try:
             os.rename(source, target)
         except OSError, e:
-            self._err("Error renaming %s to %s: %s" % (source, target, e))
+            self.log(
+                "Error: Could not rename %s to %s: %s" % (source, target, e))
 
 ######################################################################
 
 def main(argv):
-#    default_rcfile_location = "~/.maildirprocrc"
-    default_rcfile_location = "xxx"
-    parser = OptionParser(version="0.1")
+    default_rcfile_location = "~/.maildirprocrc"
+    parser = OptionParser(
+        version="0.1",
+        description=(
+            "maildirproc is a program that scans a number of maildir mail"
+            " boxes and processes found mail as defined by a an rc file. See"
+            " http://joel.rosdahl.net/maildirproc/ for more information."))
     parser.add_option(
         "-b",
         "--maildir-base",
@@ -457,22 +507,28 @@ def main(argv):
         default=default_rcfile_location)
     (options, args) = parser.parse_args(argv[1:])
 
-    rcfile_path = os.path.expanduser(options.rcfile)
     if options.logfile is None:
         log_fp = sys.stdout
     else:
         log_fp = open(os.path.expanduser(options.logfile), "a")
 
-    processor = MaildirProcessor(log_fp, options.dry_run)
+    processor = MaildirProcessor(log_fp, options.dry_run, options.once)
     if options.maildir_base:
-        processor.set_maildir_base(options.maildir_base)
+        processor.maildir_base = options.maildir_base
     if options.maildirs:
-        processor.set_maildirs(options.maildirs)
+        processor.maildirs = options.maildirs
+    if "SENDMAIL" in os.environ:
+        processor.sendmail = os.environ["SENDMAIL"]
+    if "SENDMAILFLAGS" in os.environ:
+        processor.sendmail_flags = os.environ["SENDMAILFLAGS"]
     environment = {"processor": processor}
     try:
-        fp = open(rcfile_path)
+        if options.rcfile == "-":
+            fp = sys.stdin
+        else:
+            fp = open(os.path.expanduser(options.rcfile))
     except IOError, e:
-        processor._err("Could not open RC file: %s" % e)
+        processor.log("Error: Could not open RC file: %s" % e)
     else:
         exec fp in environment
 

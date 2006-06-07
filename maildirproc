@@ -20,31 +20,14 @@
 
 """maildirproc -- maildir processor
 
-If
+http://joel.rosdahl.net/maildirproc/
 
-  * you want to automatically sort your e-mail using some given logic,
-  * you use maildir[2] mail boxes,
-  * you use (or consider using) procmail for the task, but
-    - you think it's too terse, or
-    - you think it's too ugly, or
-    - you think it's too limited, or
-    - you just want an alternative,
-  * you don't need or want a delivery agent but instead something that
-    acts on already delivered mail,
-  * you want something simple and robust yet powerful,
-  * you want to express the mail processing logic in an imperative
-    language (Python) instead of in declarative rules,
-  * you want to be able to write custom mail handling logic (in
-    Python) without the need to write external programs,
-
-then maildirproc may be for you.
-
-maildirproc was inspired by maildird[3], written by Jörgen Cederlöf.
-
----
-[1] http://www.procmail.org
-[2] http://en.wikipedia.org/wiki/Maildir
-[3] http://www.lysator.liu.se/~jc/maildird.html
+maildirproc is a small program that processes one or several existing
+mail boxes in the maildir format. It is primarily focused on mail
+sorting -- i.e., moving, copying, forwarding and deleting mail. It can
+be seen as an alternative to procmail, but instead of being a delivery
+agent, which wants to be part of the delivery chain, maildirproc runs
+on already delivered mail.
 """
 
 
@@ -61,8 +44,26 @@ import time
 from optparse import OptionParser
 
 
+def offset_to_timezone(offset):
+    if offset <= 0:
+        sign = "+"
+        offset = -offset
+    else:
+        sign = "-"
+    return "%s%02d%02d" % (
+        sign,
+        offset / 3600,
+        (offset % 3600) / 60)
+
+
 def iso_8601_now():
-    return time.strftime("%Y-%m-%d %H:%M:%S %Z")
+    now = time.time()
+    microseconds = (1000 * (now - int(now)))
+    first = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(now))
+    return "%s.%03d %s" % (
+        first,
+        microseconds,
+        offset_to_timezone(time.altzone))
 
 
 def sha1sum(path):
@@ -94,8 +95,8 @@ class MailHeader(object):
             result_text = "contains"
         else:
             result_text = "does not contain"
-        self._mail._processor.log(
-            "--> Header \"%s\" %s %r" % (self._name, result_text, string))
+        self._mail._processor.log_debug(
+            "... Header \"%s\" %s %r" % (self._name, result_text, string))
         return result
 
     def matches(self, regexp):
@@ -104,9 +105,9 @@ class MailHeader(object):
             result_text = "matches"
         else:
             result_text = "does not match"
-        self._mail._processor.log(
-            "--> Header \"%s\" %s match %r" % (
-            self._name, result_text, regexp))
+        self._mail._processor.log_debug(
+            "... Header \"%s\" %s match %r" % (
+                self._name, result_text, regexp))
         return result
 
 
@@ -122,8 +123,8 @@ class MailTarget(object):
             result_text = "contains"
         else:
             result_text = "does not contain"
-        self._mail._processor.log(
-            "--> Target %s %r" % (result_text, string))
+        self._mail._processor.log_debug(
+            "... Target %s %r" % (result_text, string))
         return result
 
     def matches(self, regexp):
@@ -132,8 +133,8 @@ class MailTarget(object):
             result_text = "matches"
         else:
             result_text = "does not match"
-        self._mail._processor.log(
-            "--> Target %s match %r" % (result_text, regexp))
+        self._mail._processor.log_debug(
+            "... Target %s match %r" % (result_text, regexp))
         return result
 
     # ----------------------------------------------------------------
@@ -174,11 +175,14 @@ class MailBase(object):
 
     def from_mailing_list(self, list_name):
         list_name = list_name.lower()
-        result = False
         for headername in [
                 "delivered-to", "x-beenthere", "x-mailing-list"]:
             if self[headername].contains(list_name):
+                self._processor.log_debug(
+                    "... Mail is on mailing list %s" % list_name)
                 return True
+        self._processor.log_debug(
+            "... Mail is not on mailing list %s" % list_name)
         return False
 
     # ----------------------------------------------------------------
@@ -200,7 +204,8 @@ class MailBase(object):
             fp = open(self.path)
         except IOError, e:
             # The file was probably moved by someone else.
-            self._processor.log("Error: Could not open %s: %s" % (path, e))
+            self._processor.log_error(
+                "Error: Could not open %s: %s" % (path, e))
             return False
         headers = email.Parser.Parser().parse(fp, headersonly=True)
         fp.close()
@@ -274,7 +279,7 @@ class Mail(MailBase):
             source_fp = open(self.path)
         except IOError, e:
             # The file was probably moved.
-            self.log("Error: Could not open %s: %s" % (self.path, e))
+            self.log_error("Error: Could not open %s: %s" % (self.path, e))
             return False
 
         tmp_target = os.path.join(
@@ -288,7 +293,7 @@ class Mail(MailBase):
         try:
             shutil.copyfileobj(source_fp, tmp_target_fp)
         except IOError, e:
-            self._processor.log(
+            self._processor.log_error(
                 "Error: Could not copy %s to %s: %s" % (
                     self.path, tmp_target, e))
             return False
@@ -307,7 +312,7 @@ class Mail(MailBase):
             os.unlink(self.path)
         except OSError, e:
             # The file was probably moved.
-            self._processor.log(
+            self._processor.log_error(
                 "Error: Could not unlink %s: %s" % (self.path, e))
 
     def _forward(self, delete, addresses):
@@ -324,7 +329,7 @@ class Mail(MailBase):
             source_fp = open(self.path)
         except IOError, e:
             # The file was probably moved.
-            self._processor.log(
+            self._processor.log_error(
                 "Error: Could not open %s: %s" % (self.path, e))
             return
 
@@ -346,8 +351,10 @@ class Mail(MailBase):
 
 
 class MaildirProcessor(object):
-    def __init__(self, log_fp=sys.stdout, dry_run=False, run_once=False):
+    def __init__(
+            self, log_fp, log_level=1, dry_run=False, run_once=False):
         self._log_fp = log_fp
+        self._log_level = log_level
         self._run_once = run_once or dry_run
         self._maildir_base = None
         self._deliveries = 0
@@ -391,15 +398,12 @@ class MaildirProcessor(object):
     sendmail_flags = property(get_sendmail_flags, set_sendmail_flags)
 
     def __iter__(self):
-        self.log("")
-        self.log("Starting maildirproc at %s" % iso_8601_now())
-
         if self.maildir_base is None:
-            self.log("Error: Maildir base directory not set")
+            self.log_error("Error: Maildir base directory not set")
             return
 
         if not self._maildirs:
-            self.log("Error: No maildirs to process")
+            self.log_error("Error: No maildirs to process")
             return
 
         mtime_map = {}
@@ -423,9 +427,19 @@ class MaildirProcessor(object):
                 break
             time.sleep(1)
 
-    def log(self, text):
-        self._log_fp.write("%s\n" % text)
-        self._log_fp.flush()
+    def log(self, text, level=1):
+        if level <= self._log_level:
+            self._log_fp.write("%s\n" % text)
+            self._log_fp.flush()
+
+    def log_debug(self, text):
+        self.log(text, 2)
+
+    def log_error(self, text):
+        self.log(text, 0)
+
+    def log_info(self, text):
+        self.log(text, 1)
 
     # ----------------------------------------------------------------
 
@@ -446,15 +460,21 @@ class MaildirProcessor(object):
         try:
             os.rename(source, target)
         except OSError, e:
-            self.log(
+            self.log_error(
                 "Error: Could not rename %s to %s: %s" % (source, target, e))
 
 ######################################################################
 
 def main(argv):
-    default_rcfile_location = "~/.maildirprocrc"
+    maildirproc_directory = os.path.expanduser("~/.maildirproc")
+    default_rcfile_location = os.path.join(maildirproc_directory, "default.rc")
+    default_logfile_location = os.path.join(maildirproc_directory, "log")
+
+    if not os.path.isdir(maildirproc_directory):
+        os.mkdir(maildirproc_directory)
+
     parser = OptionParser(
-        version="0.1",
+        version="pre0.1",
         description=(
             "maildirproc is a program that scans a number of maildir mail"
             " boxes and processes found mail as defined by a an rc file. See"
@@ -470,15 +490,23 @@ def main(argv):
         "--dry-run",
         action="store_true",
         default=False,
-        help="just log what should have been done; implies --once")
+        help=(
+            "just log what should have been done; implies --once"))
     parser.add_option(
         "-l",
         "--logfile",
         type="string",
         dest="logfile",
         metavar="FILE",
-        help="send log to LOGFILE instead of standard output",
-        default=None)
+        help="send log to FILE instead of the default (%s)" % (
+            default_logfile_location),
+        default=default_logfile_location)
+    parser.add_option(
+        "--log-level",
+        type="int",
+        metavar="INTEGER",
+        help="only include log messages with this log level or lower",
+        default=1)
     parser.add_option(
         "-m",
         "--maildir",
@@ -494,7 +522,9 @@ def main(argv):
         "--once",
         action="store_true",
         default=False,
-        help="only process the maildirs once and then exit")
+        help=(
+            "only process the maildirs once and then exit; without this flag,"
+            " maildirproc will scan the maildirs continously"))
     parser.add_option(
         "-r",
         "--rcfile",
@@ -505,14 +535,43 @@ def main(argv):
             "use the given rc file instead of the default (%s)" % (
                 default_rcfile_location)),
         default=default_rcfile_location)
+    parser.add_option(
+        "--test",
+        action="store_true",
+        default=False,
+        help=(
+            "test mode; implies --dry-run, --once, --logfile=- and"
+            " --verbose"))
+    parser.add_option(
+        "-v",
+        "--verbose",
+        action="count",
+        default=0,
+        dest="verbosity",
+        help="increase log level one step")
     (options, args) = parser.parse_args(argv[1:])
 
-    if options.logfile is None:
+    if options.test:
+        options.dry_run = True
+        options.logfile = "-"
+        options.verbosity = max(1, options.verbosity)
+
+    if options.dry_run:
+        options.once = True
+
+    if options.logfile == "-":
         log_fp = sys.stdout
     else:
         log_fp = open(os.path.expanduser(options.logfile), "a")
 
-    processor = MaildirProcessor(log_fp, options.dry_run, options.once)
+    log_level = options.log_level + options.verbosity
+
+
+    processor = MaildirProcessor(
+        log_fp, log_level, options.dry_run, options.once)
+    processor.log("")
+    processor.log("Starting maildirproc at %s" % iso_8601_now())
+
     if options.maildir_base:
         processor.maildir_base = options.maildir_base
     if options.maildirs:
@@ -522,13 +581,17 @@ def main(argv):
     if "SENDMAILFLAGS" in os.environ:
         processor.sendmail_flags = os.environ["SENDMAILFLAGS"]
     environment = {"processor": processor}
+
     try:
         if options.rcfile == "-":
+            processor.log("RC file: <standard input>")
             fp = sys.stdin
         else:
-            fp = open(os.path.expanduser(options.rcfile))
+            rcfile = os.path.expanduser(options.rcfile)
+            processor.log("RC file: %r" % rcfile)
+            fp = open(rcfile)
     except IOError, e:
-        processor.log("Error: Could not open RC file: %s" % e)
+        processor.log_error("Error: Could not open RC file: %s" % e)
     else:
         exec fp in environment
 

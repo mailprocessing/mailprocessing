@@ -171,6 +171,20 @@ class TestBasics(TestFixture):
         self.verify_result({"incoming": 0, "dest": 10})
 
 
+class TestMailAttributes(TestFixture):
+    def test_path(self):
+        rc = '''
+            for mail in processor:
+                if mail.path.endswith("incoming/new/a"):
+                    mail.move("dest")
+            '''
+
+        self.makedirs(["incoming", "dest"])
+        self.create("a", "incoming/new/a")
+        self.run_mdp(rc, ["incoming"])
+        self.verify_result({"incoming": 0, "dest": 1})
+
+
 class TestHeaderMatches(TestFixture):
     def test_negative_header_matches(self):
         rc = '''

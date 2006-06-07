@@ -1,0 +1,14 @@
+# -*- python -*-
+#
+# This maildirproc program checks each mail in the scanned maildirs
+# and moves mail according to the X-Spam-Status header.
+#
+# maildirproc could be run like this:
+#
+#     maildirproc -r sort-spam.rc -b ~/maildirs -m incoming
+
+for mail in processor:
+    if mail["X-Spam-Status"].matches("^Yes"):
+        mail.move("incoming.spam")
+    else:
+        mail.move("incoming.nonspam")

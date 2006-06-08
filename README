@@ -17,8 +17,8 @@ maildirproc is a small program that processes one or several existing
 mail boxes in the maildir format. It is primarily focused on mail
 sorting -- i.e., moving, copying, forwarding and deleting mail
 according to a set of rules. It can be seen as an alternative to
-procmail, but instead of being a delivery agent, which wants to be
-part of the delivery chain, maildirproc only processes already
+procmail, but instead of being a delivery agent (which wants to be
+part of the delivery chain), maildirproc only processes already
 delivered mail.
 
 
@@ -74,8 +74,8 @@ Installation
 ============
 
 maildirproc has no other dependencies than a working Python 2.4 (or
-higher) installation. No special installation is needed; just copy the
-maildirproc file to a suitable place and run it.
+higher). No special installation is needed; just copy the maildirproc
+file to a suitable place and run it.
 
 You can run maildirproc in several diffent ways, e.g.:
 

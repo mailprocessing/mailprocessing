@@ -4,24 +4,6 @@
 # configuration. (It's actually a stripped down version of the
 # author's configuration.)
 
-# incoming.ham: Mail mistakenly classified as spam are moved here
-# manually. Messages are unregistered as spam, registered as ham and
-# moved to incoming.unsorted.
-#
-# incoming.spam: Mail mistakenly classified as ham are moved here
-# manually. Messages are unregistered as ham, registered as spam and
-# moved to mail.spam.
-#
-# incoming.unknown: This is the main entrance; getmail delivers mail
-# here. Messages that bogofilter thinks are spam are registered as
-# spam and moved to mail.spam. Other messages are registered as ham
-# and moved to incoming.unsorted.
-#
-# incoming.unsorted: Messages are moved, copied and/or forwarded to
-# suitable places. Messages can be moved here manually by a mail
-# client if they need to be resorted without being run through the
-# spam classification process.
-#
 #                           :
 #                           |
 #                           V
@@ -39,6 +21,24 @@
 #                             / / / /   \ \ \ \ \
 #                            ' ' ' '     ' ' ' ' '
 #                           ' ' ' '       ' ' ' ' '
+#
+# incoming.ham: Mail mistakenly classified as spam are moved here
+# manually. Messages are unregistered as spam, registered as ham and
+# moved to incoming.unsorted.
+#
+# incoming.spam: Mail mistakenly classified as ham are moved here
+# manually. Messages are unregistered as ham, registered as spam and
+# moved to mail.spam.
+#
+# incoming.unknown: This is the main entrance; getmail delivers mail
+# here. Messages that bogofilter thinks are spam are registered as
+# spam and moved to mail.spam. Other messages are registered as ham
+# and moved to incoming.unsorted.
+#
+# incoming.unsorted: Messages are moved, copied and/or forwarded to
+# suitable places. Messages can be moved here manually by a mail
+# client if they need to be resorted without being run through the
+# spam classification process.
 
 import re
 import subprocess

@@ -34,6 +34,7 @@ on already delivered mail.
 import email.Header
 import email.Parser
 import os
+import random
 import re
 import sha
 import shutil
@@ -449,10 +450,11 @@ class MaildirProcessor(object):
         hostname = hostname.replace("/", "\\057")
         hostname = hostname.replace(":", "\\072")
         now = time.time()
-        delivery_identifier = "M%dP%dQ%d" % (
+        delivery_identifier = "M%dP%dQ%dR%08x" % (
             round((now - int(now)) * 1000000),
             os.getpid(),
-            self._deliveries)
+            self._deliveries,
+            random.randint(0, 0xffffffff))
         self._deliveries += 1
         return "%d.%s.%s" % (now, delivery_identifier, hostname)
 

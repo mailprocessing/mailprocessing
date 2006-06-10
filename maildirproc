@@ -574,7 +574,7 @@ def main(argv):
         default=0,
         dest="verbosity",
         help="increase log level one step")
-    (options, args) = parser.parse_args(argv[1:])
+    (options, _) = parser.parse_args(argv[1:])
 
     if options.test:
         options.dry_run = True

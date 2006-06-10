@@ -205,9 +205,8 @@ class MailBase(object):
         try:
             fp = open(self.path)
         except IOError, e:
-            # The file was probably moved by someone else.
-            self._processor.log_error(
-                "Error: Could not open %s: %s" % (path, e))
+            # The file was probably (re)moved by some other process.
+            self._processor._log_mail_opening_error(path, e)
             return False
         headers = email.Parser.Parser().parse(fp, headersonly=True)
         fp.close()
@@ -280,42 +279,56 @@ class Mail(MailBase):
         try:
             source_fp = open(self.path)
         except IOError, e:
-            # The file was probably moved.
-            self.log_error("Error: Could not open %s: %s" % (self.path, e))
-            return False
+            # The file was probably (re)moved by some other process.
+            self._log_mail_opening_error(self.path, e)
+            return
 
         tmp_target = os.path.join(
             self._processor.maildir_base,
             maildir,
             "tmp",
             self._processor._create_maildir_name())
-        tmp_target_fp = os.fdopen(
-            os.open(tmp_target, os.O_WRONLY | os.O_CREAT | os.O_EXCL),
-            "w")
+        try:
+            tmp_target_fp = os.fdopen(
+                os.open(tmp_target, os.O_WRONLY | os.O_CREAT | os.O_EXCL),
+                "w")
+        except IOError, e:
+            self._processor._log_io_error(
+                "Could not open %s for writing" % tmp_target,
+                e)
+            return
         try:
             shutil.copyfileobj(source_fp, tmp_target_fp)
+            source_fp.close()
+            tmp_target_fp.close()
         except IOError, e:
-            self._processor.log_error(
-                "Error: Could not copy %s to %s: %s" % (
-                    self.path, tmp_target, e))
-            return False
-        source_fp.close()
-        tmp_target_fp.close()
+            self._processor._log_io_error(
+                "Could not copy %s to %s" % (self.path, tmp_target),
+                e)
+            return
 
         target = os.path.join(
             self._processor.maildir_base,
             maildir,
             "new",
             self._processor._create_maildir_name())
-        self._processor._rename(tmp_target, target)
+        try:
+            self._processor._rename(tmp_target, target)
+        except IOError, e:
+            self._processor._log_io_error(
+                "Could not rename %s to %s" % (tmp_target, target),
+                e)
+            return
 
     def _delete(self):
         try:
             os.unlink(self.path)
         except OSError, e:
             # The file was probably moved.
-            self._processor.log_error(
-                "Error: Could not unlink %s: %s" % (self.path, e))
+            self._processor._log_io_error(
+                "Could not delete %s; some other process probably (re)moved"
+                " it" % self.path,
+                e)
 
     def _forward(self, delete, addresses):
         if isinstance(addresses, basestring):
@@ -331,8 +344,7 @@ class Mail(MailBase):
             source_fp = open(self.path)
         except IOError, e:
             # The file was probably moved.
-            self._processor.log_error(
-                "Error: Could not open %s: %s" % (self.path, e))
+            self._processor._log_mail_opening_error(self.path, e)
             return
 
         p = subprocess.Popen(
@@ -459,6 +471,16 @@ class MaildirProcessor(object):
         self._deliveries += 1
         return "%d.%s.%s" % (now, delivery_identifier, hostname)
 
+    def _log_io_error(errmsg, os_errmsg):
+        self.log_error(
+            "Error: %s (error message from OS: %s)" % (errmsg, os_errmsg))
+
+    def _log_mail_opening_error(path, errmsg):
+        self._log_io_error(
+            "Could not open %s; some other process probably (re)moved it" % (
+                path),
+            errmsg)
+
     def _rename(self, source, target):
         try:
             os.rename(source, target)
@@ -568,7 +590,6 @@ def main(argv):
         log_fp = open(os.path.expanduser(options.logfile), "a")
 
     log_level = options.log_level + options.verbosity
-
 
     processor = MaildirProcessor(
         log_fp, log_level, options.dry_run, options.once)

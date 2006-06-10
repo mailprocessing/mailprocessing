@@ -5,7 +5,7 @@ http://joel.rosdahl.net/maildirproc/
 License
 =======
 
-maildirproc is written by Joel Rosdahl <joel@rosdahl.net> and is
+maildirproc was written by Joel Rosdahl <joel@rosdahl.net> and is
 distributed under the terms of the GNU General Public Licence (see the
 file LICENSE for details).
 
@@ -74,8 +74,8 @@ Installation
 ============
 
 maildirproc has no other dependencies than a working Python 2.4 (or
-higher). No special installation is needed; just copy the maildirproc
-file to a suitable place and run it.
+higher) on a Unixish system. No special installation is needed; just
+copy the maildirproc file to a suitable place and run it.
 
 You can run maildirproc in several diffent ways, e.g.:
 

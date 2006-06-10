@@ -1,0 +1,13 @@
+#! /bin/sh
+
+pylint \
+    --disable-msg=C0101 \
+    --disable-msg=R0902 \
+    --disable-msg=R0912 \
+    --disable-msg=R0915 \
+    --disable-msg=W0103 \
+    --disable-msg=W0122 \
+    --disable-msg=W0131 \
+    --include-ids=y \
+    --reports=n \
+    maildirproc

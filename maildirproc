@@ -206,14 +206,14 @@ class MailBase(object):
             fp = open(self.path)
         except IOError, e:
             # The file was probably (re)moved by some other process.
-            self._processor._log_mail_opening_error(path, e)
+            self._processor._log_mail_opening_error(self.path, e)
             return False
         headers = email.Parser.Parser().parse(fp, headersonly=True)
         fp.close()
         for name in headers.keys():
             for header in headers.get_all(name, []):
                 value_parts = [
-                    x for (x, y) in email.Header.decode_header(header)]
+                    x for (x, _) in email.Header.decode_header(header)]
                 value = "\n".join(value_parts)
                 self._headers[name.lower()] = value
         return True
@@ -227,7 +227,7 @@ class DryRunMail(MailBase):
         self._processor.log("==> Deleting")
 
     def forward(self, addresses):
-        self._forward(True, address)
+        self._forward(True, addresses)
 
     def forward_copy(self, addresses):
         self._forward(False, addresses)
@@ -280,7 +280,7 @@ class Mail(MailBase):
             source_fp = open(self.path)
         except IOError, e:
             # The file was probably (re)moved by some other process.
-            self._log_mail_opening_error(self.path, e)
+            self._processor._log_mail_opening_error(self.path, e)
             return
 
         tmp_target = os.path.join(
@@ -471,11 +471,11 @@ class MaildirProcessor(object):
         self._deliveries += 1
         return "%d.%s.%s" % (now, delivery_identifier, hostname)
 
-    def _log_io_error(errmsg, os_errmsg):
+    def _log_io_error(self, errmsg, os_errmsg):
         self.log_error(
             "Error: %s (error message from OS: %s)" % (errmsg, os_errmsg))
 
-    def _log_mail_opening_error(path, errmsg):
+    def _log_mail_opening_error(self, path, errmsg):
         self._log_io_error(
             "Could not open %s; some other process probably (re)moved it" % (
                 path),

@@ -48,8 +48,7 @@ def autolearn_and_check_spam(mail):
         ["bogofilter", "-u", "-v", "-I", mail.path],
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT)
-    p.wait()
-    output = p.stdout.read()
+    (output, _) = p.communicate()
     processor.log("*** Bogofilter result: %r" % output.rstrip())
     if p.returncode == 0:
         # Spam.
@@ -75,6 +74,8 @@ def is_cron_mail(mail):
     return (
         mail["from"].contains("root") and
         mail["subject"].matches("^(Cron|Anacron)"))
+
+# ...
 
 ######################################################################
 
@@ -135,6 +136,8 @@ def handle_incoming_unsorted(mail):
             processor.log("... Mail from %r" % address_re)
             mail.move(boxname)
             return
+
+    # ...
 
     # Cron mail.
     if is_cron_mail(mail):

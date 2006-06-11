@@ -502,7 +502,7 @@ def main(argv):
         version="pre0.1.1",
         description=(
             "maildirproc is a program that scans a number of maildir mail"
-            " boxes and processes found mail as defined by a an rc file. See"
+            " boxes and processes found mail as defined by an rc file. See"
             " http://joel.rosdahl.net/maildirproc/ for more information."))
     parser.add_option(
         "-b",

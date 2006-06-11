@@ -19,10 +19,11 @@ h1, h2, h3 {
 
 div.code-example {
     font-family: monospace;
-    margin: 1em;
+    margin-top: 1em;
+    margin-bottom: 1em;
     padding: 0.5em;
     background-color: #e8cba3;
-    border-style: solid;
+    border-style: dashed;
     border-width: 1px;
     border-color: #000000;
 }

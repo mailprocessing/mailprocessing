@@ -6,23 +6,19 @@ DIST_FILES = \
     LICENSE \
     NEWS \
     README \
-    maildirproc
-
-EXAMPLE_FILES = \
-    examples/sort-spam.rc \
-    examples/complex.rc
+    maildirproc \
+    doc
 
 maildirproc-$(VERSION).tar.gz: $(DIST_FILES) $(EXAMPLE_FILES)
 	rm -rf maildirproc-$(VERSION)
 	mkdir maildirproc-$(VERSION)
-	cp $(DIST_FILES) maildirproc-$(VERSION)
-	mkdir maildirproc-$(VERSION)/examples
-	cp $(EXAMPLE_FILES) maildirproc-$(VERSION)/examples
+	cp -r $(DIST_FILES) maildirproc-$(VERSION)
+	find maildirproc-$(VERSION) -name .svn | xargs rm -rf
 	tar czf $@ maildirproc-$(VERSION)
 	rm -rf maildirproc-$(VERSION)
 
 clean:
-	rm -rf maildirproc-$(VERSION) *.tar.gz
+	rm -rf maildirproc-$(VERSION)
 	find . -name '*~' | xargs rm -f
 
 .PHONY: all clean

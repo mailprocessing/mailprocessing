@@ -1,0 +1,190 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="Author" content="Joel Rosdahl, joel@rosdahl.net">
+<link rel="stylesheet" type="text/css" href="maildirproc.css">
+<title>maildirproc reference</title>
+</head>
+
+<body>
+<h1>maildirproc reference</h1>
+
+<h2>Examples</h2>
+
+For some examples, see the <a href="examples/">examples</a> directory.
+
+<h2>Default behaviour</h2>
+
+<p>By default, maildirproc continuously monitors a number of maildirs
+and processes mail in them according to logic in an <i>rc file</i>.
+When there are no more mail to process, maildirproc sleeps one second
+and then checks again. And so on. To make maildirproc exit when there
+are no mail left, pass the <span class="commandline">--once</span>
+option.</p>
+
+<p>maildirproc keeps a list of maildirs to process. The maildirs are
+expected to be subdirectories of a common base directory, the
+<i>maildir base directory</i>. Both the base directory and the list of
+maildirs must be specified for maildirproc to run. There are two ways
+to specify this information: by passing command-line options, or by
+setting attributes on the processor instance in the rc file. The rc
+file has priority over the command-line options.</p>
+
+<p>The default location of the rc file is <span
+class="commandline">~/.maildirproc/default.rc</span> and the default
+location of the log file is <span
+class="commandline">~/.maildirproc/log</span>.</p>
+
+<h2>Commandline options</h2>
+
+<p>
+maildirproc takes these command-line options:
+
+<dl class="commandline-options">
+
+<dt>--version</dt>
+<dd>show program's version number and exit</dd>
+
+<dt>-h, --help</dt>
+<dd>show this help message and exit</dd>
+
+<dt>-b DIRECTORY, --maildir-base=DIRECTORY</dt>
+<dd>set maildir base directory</dd>
+
+<dt>--dry-run</dt>
+<dd>just log what should have been done; implies <span class="commandline">--once</span></dd>
+
+<dt>-l FILE, --logfile=FILE</dt>
+<dd>send log to FILE instead of the default (<span class="commandline">~/.maildirproc/log</span>)</dd>
+
+<dt>--log-level=INTEGER</dt>
+<dd>only include log messages with this log level or lower</dd>
+
+<dt>-m NAME, --maildir=NAME</dt>
+<dd>add NAME (a subdirectory of the maildir base directory) to the set of maildir directories to process; can be passed multiple times</dd>
+
+<dt>--once</dt>
+<dd>only process the maildirs once and then exit; without this flag, maildirproc will scan the maildirs continously</dd>
+
+<dt>-r FILE, --rcfile=FILE</dt>
+<dd>use the given rc file instead of the default (<span class="commandline">~/.maildirproc/default.rc</span>)</dd>
+
+<dt>--test</dt>
+<dd>test mode; implies <span class="commandline">--dry-run</span>, <span class="commandline">--once</span>, <span class="commandline">--logfile=-</span> and <span class="commandline">--verbose</span></dd>
+
+<dt>-v, --verbose</dt>
+<dd>increase log level one step</dd>
+
+</dl>
+
+</p>
+
+<h2>Configuration</h2>
+
+<p>maildirproc's configuration, the <i>rc file</i>, is not a set of
+declarative rules. Instead, it is a simple <a
+href="http://www.python.org">Python</a> program that has access to a
+"maildir processor" object which produces mail objects. The mail
+processing logic is defined in terms of if/elif/else statements and
+actions are performed by calling methods on the mail objects.</p>
+
+<p>The program has access to one special object: the <span
+class="language-symbol">processor</span> object which is an instance of
+the MaildirProcessor class.</p>
+
+<h3>The MaildirProcessor class</h3>
+
+<h4>Readable and writable properties</h4>
+
+<dl class="class-attributes">
+
+<dt>logfile</dt>
+<dd>Location of the log file. Assignment to this property overrides the corresponding command-line option.</dd>
+
+<dt>maildir_base</dt>
+<dd>The base directory of maildirs. Assignment to this property overrides the corresponding command-line option.</dd>
+
+<dt>maildirs</dt>
+<dd>A list of maildirs (subdirectories of the maildir base directory). Assignment to this property overrides the corresponding command-line option.</dd>
+
+</dl>
+
+<p>Iteration over a MaildirProcess yields <span
+class="language-symbol">Mail</span> instances.</p>
+
+<h3>The Mail class</h3>
+
+<p>Indexing the Mail class yields <span
+class="commandline">Header</span> instances.</p>
+
+<h4>Readable properties</h4>
+
+<dl class="class-attributes">
+
+<dt>maildir</dt>
+<dd>The maildir in which the mail is situated.</dd>
+
+<dt>path</dt>
+<dd>Full filesystem path to the mail.</dd>
+
+<dt>target</dt>
+<dd>A <span class="commandline">Target</span> instance.</dd>
+
+</dl>
+
+<h4>Methods</h4>
+
+<dl class="class-attributes">
+
+<dt>copy(<i>maildir</i>)</dt>
+<dd>Copy the mail to <i>maildir</i>.</dd>
+
+<dt>delete()</dt>
+<dd>Delete the mail.</dd>
+
+<dt>forward(<i>addresses</i>)</dt>
+<dd>Forward the mail to one or several e-mail addresses <b>and delete the mail</b>. <i>addresses</i> can be either a string or a list of strings.</dd>
+
+<dt>forward_copy(<i>addresses</i>)</dt>
+<dd>Forward a copy of the mail to one or several e-mail addresses. <i>addresses</i> can be either a string or a list of strings.</dd>
+
+<dt>from_mailing_list(<i>list</i>)</dt>
+<dd>Check whether the mail originated from the mailing list
+<i>list</i>. Currently, the headers Delivered-To, X-BeenThere and X-Mailing-List are checked.</dd>
+
+<dt>move(<i>maildir</i>)</dt>
+<dd>Move the mail to <i>maildir</i>.</dd>
+
+</dl>
+
+<h3>The Header class</h3>
+
+<h4>Methods</h4>
+
+<dl class="class-attributes">
+
+<dt>contains(<i>case-insensitive-string</i>)</dt>
+<dd>Check whether <i>case-insensitive-string</i> is part of the header.</dd>
+
+<dt>matches(<i>case-insensitive-regexp</i>)</dt>
+<dd>Check whether <i>case-insensitive-regexp</i> matches the header.</dd>
+
+</dl>
+
+<h3>The Target class</h3>
+
+<h4>Methods</h4>
+
+<dl class="class-attributes">
+
+<dt>contains(<i>case-insensitive-string</i>)</dt>
+<dd>Check whether <i>case-insensitive-string</i> is part of the To or Cc header.</dd>
+
+<dt>matches(<i>case-insensitive-regexp</i>)</dt>
+<dd>Check whether <i>case-insensitive-regexp</i> matches the To or Cc header.</dd>
+
+</dl>
+
+</body>
+</html>

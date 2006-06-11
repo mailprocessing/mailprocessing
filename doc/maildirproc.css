@@ -1,0 +1,54 @@
+body {
+    color: #000000;
+    background-color: #ebe5d8;
+    margin: 1em;
+}
+
+a {
+    color: #173ba1;
+}
+
+li {
+    margin-bottom: 0.5em;
+}
+
+h1, h2, h3 {
+    border-style: solid;
+    border-width: 0 0 1px 0;
+}
+
+div.code-example {
+    font-family: monospace;
+    margin: 1em;
+    padding: 0.5em;
+    background-color: #e8cba3;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #000000;
+}
+
+div.quote {
+    margin: 1em;
+    padding: 0.5em;
+    font-style: italic;
+}
+
+span.commandline {
+    font-family: monospace;
+}
+
+span.language-symbol {
+    font-family: monospace;
+}
+
+dl.commandline-options dt {
+    font-family: monospace;
+}
+
+dl.class-attributes dt {
+    font-family: monospace;
+}
+
+dd {
+    margin-bottom: 1em;
+}

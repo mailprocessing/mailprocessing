@@ -499,7 +499,7 @@ def main(argv):
         os.mkdir(maildirproc_directory)
 
     parser = OptionParser(
-        version="0.1",
+        version="pre0.1.1",
         description=(
             "maildirproc is a program that scans a number of maildir mail"
             " boxes and processes found mail as defined by a an rc file. See"
@@ -542,7 +542,8 @@ def main(argv):
         metavar="NAME",
         help=(
             "add NAME (a subdirectory of the maildir base directory) to the"
-            " set of maildir directories to process"))
+            " set of maildir directories to process; can be passed multiple"
+            " times"))
     parser.add_option(
         "--once",
         action="store_true",

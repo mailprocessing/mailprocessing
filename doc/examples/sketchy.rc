@@ -1,0 +1,59 @@
+# -*- python -*-
+#
+# This is a sketchy example of what can be done in a maildirproc rc
+# file.
+
+# Set maildir base directory. Alternative: pass the -b/--maildir-base
+# command-line option.
+processor.maildir_base = "~/maildirs"
+
+# Set maildirs to process. Alternative: pass one or several
+# -m/--maildir command-line options.
+processor.maildirs = ["incoming1", "incoming2"]
+
+# Set location of the log file. Alternative: pass the -l/--logfile
+# command-line option. Default value: ~/.maildirproc/log
+processor.logfile = "~/.maildirproc.log"
+
+# Iterate over all mails found in the maildirs. The loop never
+# terminates, except if the --once command-line option is passed (or a
+# fatal error occurs).
+for mail in processor:
+    # Some read-only attributes.
+    print mail.maildir
+    print mail.path
+    print mail["header"]
+
+    # Check against named headers.
+    if mail["header"].matches("case insensitive regexp"):
+        # ...
+    if mail["header"].contains("case insensitive string"):
+        # ...
+
+    # Match against headers known to be set be mailing lists
+    # (currently "Delivered-To", "X-BeenThere" and "X-Mailing-List").
+    if mail.from_mailing_list("mailing-list@example.com"):
+        # ...
+
+    # mail.target refers to both the To and Cc headers.
+    if mail.target.matches("case insensitive regexp"):
+        # ...
+    if mail.target.contains("case insensitive string"):
+        # ...
+
+    # Copy mail to another maildir.
+    mail.copy("some-maildir")
+
+    # Move mail to another maildir.
+    mail.move("some-maildir")
+
+    # Delete the mail.
+    mail.delete()
+
+    # Forward mail to external recipients.
+    mail.forward_copy("address@example.com")
+    mail.forward_copy(["address1@example.com", "address2@example.com"])
+
+    # Forward mail to external recipients AND DELETE THE MAIL.
+    mail.forward("address@example.com")
+    mail.forward(["address1@example.com", "address2@example.com"])

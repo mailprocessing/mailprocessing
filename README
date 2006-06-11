@@ -2,16 +2,9 @@ maildirproc -- maildir processor
 
 http://joel.rosdahl.net/maildirproc/
 
-License
-=======
-
 maildirproc was written by Joel Rosdahl <joel@rosdahl.net> and is
 distributed under the terms of the GNU General Public Licence (see the
 file LICENSE for details).
-
-
-Summary
-=======
 
 maildirproc is a program that processes one or several existing mail
 boxes in the maildir format. It is primarily focused on mail sorting
@@ -20,80 +13,5 @@ set of rules. It can be seen as an alternative to procmail, but
 instead of being a delivery agent (which wants to be part of the
 delivery chain), maildirproc only processes already delivered mail.
 
-
-Background
-==========
-
-I used procmail to sort my mail for a long time, but I was not
-entirely happy with it the configuration language. I subscribe to a
-lot of mailing lists and I use several e-mail addresses, so the
-.procmailrc file was quite large and complex and I found it hard to
-express mail sorting rules elegantly. I wanted to be able to define
-and use functions, to be able to use loops and other imperative
-language constructs and felt that procmail's rule-based vocabulary was
-limiting. I thought about writing a program to generate the
-configuration from some higher-level rules, but I never got to it. I
-also didn't feel comfortable with e-mail sorting being part of the
-delivery chain. (Granted, procmail can be used in other setups too.)
-
-Then one day I stumbled on a program called Maildird, written by
-Jörgen Cederlöf, and I liked its basic design: "Maildird calmly waits
-until the mail is delivered, notices that a new mail has arrived in
-the Maildir it monitors, writes something useful in the log [...] and
-moves the mail safely to the correct Maildir." Since Maildird was not
-configurable (at least not at the time) in the way I wanted, I decided
-to write my own program that worked somewhat similarly but with a
-configuration style that suited me. If you like it, you are welcome to
-use (or improve) it too.
-
-
-Documentation
-=============
-
-Configuration
--------------
-
-maildirproc's configuration is not a set of declarative rules. 
-Instead, it is a simple Python program that has access to a "maildir
-processor" object which produces mail objects. The mail processing
-logic is defined in terms of if/elif/else statements and actions are
-performed by calling methods on the mail objects.
-
-Sorry, no more configuration documentation yet. Use the source, Luke,
-or see the examples directory.
-
-
-Commandline options
--------------------
-
-See "maildirproc --help".
-
-
-Installation
-============
-
-maildirproc has no other dependencies than a working Python 2.4 (or
-higher) on a Unixish system. No special installation is needed; just
-copy the maildirproc file to a suitable place and run it.
-
-You can run maildirproc in several diffent ways, e.g.:
-
-  * Manually: You could, for example, run
-
-        maildirproc --once -r foo.rc -b . -m Maildir
-
-    to apply the program in foo.rc once on a maildir directory called
-    Maildir in the current directory.
-
-  * By cron: Put a row like
-
-        * * * * * maildirproc --once
-
-    in your crontab to run maildirproc each minute (using the default
-    RC file ~/.maildirproc/default.rc).
-
-  * As a long-running process: Just start maildirproc (without the
-    --once flag).
-
-  * Using some service supervision framework, for example runit
-    <http://smarden.org/runit/>.
+For more information, some documentation and examples, see the doc
+directory.

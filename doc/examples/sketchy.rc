@@ -1,7 +1,8 @@
 # -*- python -*-
 #
 # This is a sketchy example of what can be done in a maildirproc rc
-# file.
+# file. Thus, it's not an example of a real configuration, but rather
+# a demonstration of what's available.
 
 # Set maildir base directory. Alternative: pass the -b/--maildir-base
 # command-line option.
@@ -30,7 +31,7 @@ for mail in processor:
     if mail["header"].contains("case insensitive string"):
         # ...
 
-    # Match against headers known to be set be mailing lists
+    # Match against headers known to be set by mailing lists
     # (currently "Delivered-To", "X-BeenThere" and "X-Mailing-List").
     if mail.from_mailing_list("mailing-list@example.com"):
         # ...
@@ -41,19 +42,19 @@ for mail in processor:
     if mail.target.contains("case insensitive string"):
         # ...
 
-    # Copy mail to another maildir.
+    # Copy the mail to another maildir.
     mail.copy("some-maildir")
 
-    # Move mail to another maildir.
+    # Move the mail to another maildir.
     mail.move("some-maildir")
 
     # Delete the mail.
     mail.delete()
 
-    # Forward mail to external recipients.
+    # Forward a copy of the mail to external recipients.
     mail.forward_copy("address@example.com")
     mail.forward_copy(["address1@example.com", "address2@example.com"])
 
-    # Forward mail to external recipients AND DELETE THE MAIL.
+    # Forward the mail to external recipients AND DELETE THE MAIL.
     mail.forward("address@example.com")
     mail.forward(["address1@example.com", "address2@example.com"])

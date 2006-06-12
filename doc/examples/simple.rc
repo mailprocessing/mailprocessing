@@ -5,7 +5,7 @@
 #
 # maildirproc could be run like this:
 #
-#     maildirproc -r sort-spam.rc -b ~/maildirs -m incoming
+#     maildirproc -r simple.rc -b ~/maildirs -m incoming
 
 for mail in processor:
     if mail["X-Spam-Status"].matches("^Yes"):

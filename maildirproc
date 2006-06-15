@@ -68,8 +68,7 @@ def iso_8601_now():
         offset_to_timezone(time.altzone))
 
 
-def sha1sum(path):
-    fp = open(path)
+def sha1sum(fp):
     sha_obj = sha.new()
     while True:
         data = fp.read(4096)
@@ -193,7 +192,13 @@ class MailBase(object):
         self._processor.log("")
         self._processor.log("New mail detected at %s:" % iso_8601_now())
         self._processor.log("Path:       %r" % self.path)
-        self._processor.log("SHA1:       %r" % sha1sum(self.path))
+        try:
+            fp = open(self.path)
+        except IOError, e:
+            # The file was probably (re)moved by some other process.
+            self._processor._log_mail_opening_error(self.path, e)
+            return
+        self._processor.log("SHA1:       %r" % sha1sum(fp))
         self._processor.log("Message-ID: %r" % self["Message-ID"])
         self._processor.log("Subject:    %r" % self["Subject"])
         self._processor.log("Date:       %r" % self["Date"])

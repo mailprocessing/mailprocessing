@@ -496,12 +496,12 @@ class MaildirProcessor(object):
 ######################################################################
 
 def main(argv):
-    maildirproc_directory = os.path.expanduser("~/.maildirproc")
+    maildirproc_directory = "~/.maildirproc"
     default_rcfile_location = os.path.join(maildirproc_directory, "default.rc")
     default_logfile_location = os.path.join(maildirproc_directory, "log")
 
-    if not os.path.isdir(maildirproc_directory):
-        os.mkdir(maildirproc_directory)
+    if not os.path.isdir(os.path.expanduser(maildirproc_directory)):
+        os.mkdir(os.path.expanduser(maildirproc_directory))
 
     parser = OptionParser(
         version="pre0.1.1",
@@ -535,7 +535,9 @@ def main(argv):
         "--log-level",
         type="int",
         metavar="INTEGER",
-        help="only include log messages with this log level or lower",
+        help=(
+            "only include log messages with this log level or lower; defaults"
+            " to 1"),
         default=1)
     parser.add_option(
         "-m",
@@ -555,7 +557,7 @@ def main(argv):
         default=False,
         help=(
             "only process the maildirs once and then exit; without this flag,"
-            " maildirproc will scan the maildirs continously"))
+            " maildirproc will scan the maildirs continuously"))
     parser.add_option(
         "-r",
         "--rcfile",

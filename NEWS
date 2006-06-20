@@ -1,7 +1,7 @@
-Version 0.1.1 (2006-06-??)
+Version 0.1.1 (2006-06-20)
 
-  - Fixed race condition: Make file opening for SHA1 calculation
-    tolerant to recently renamed mails.
+  - Fixed race condition: Mail file opening for SHA1 calculation is
+    now more robust.
   - Improved documentation.
 
 Version 0.1 (2006-06-10)

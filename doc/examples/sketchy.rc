@@ -32,7 +32,8 @@ for mail in processor:
         # ...
 
     # Match against headers known to be set by mailing lists
-    # (currently "Delivered-To", "X-BeenThere" and "X-Mailing-List").
+    # (currently "Delivered-To", "Mailing-List", "X-BeenThere" and
+    # "X-Mailing-List").
     if mail.from_mailing_list("mailing-list@example.com"):
         # ...
 

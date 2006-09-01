@@ -20,6 +20,7 @@ class TestFixture(TestCase):
         "Delivered-To: Alpha\n",
         "X-BeenThere: Bravo\n",
         "X-Mailing-List: Charlie\n",
+        "Mailing-List: Delta\n",
         "\n",
         "Body.\n",
         ]
@@ -283,11 +284,13 @@ class TestFromMailingList(TestFixture):
                     mail.copy("x-beenthere")
                 if mail.from_mailing_list("charlie"):
                     mail.copy("x-mailing-list")
+                if mail.from_mailing_list("delta"):
+                    mail.copy("mailing-list")
             '''
 
         self.makedirs(
             ["incoming", "to", "cc", "delivered-to",
-             "x-beenthere", "x-mailing-list"])
+             "x-beenthere", "x-mailing-list", "mailing-list"])
         self.create("a", "incoming/new/a")
         self.run_mdp(rc, ["incoming"])
         self.verify_result({
@@ -297,6 +300,7 @@ class TestFromMailingList(TestFixture):
             "delivered-to": 1,
             "x-beenthere": 1,
             "x-mailing-list": 1,
+            "mailing-list": 1,
             })
 
 ######################################################################

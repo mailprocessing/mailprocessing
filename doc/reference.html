@@ -28,8 +28,9 @@ expected to be subdirectories of a common base directory, the
 <i>maildir base directory</i>. Both the base directory and the list of
 maildirs must be specified for maildirproc to run. There are two ways
 to specify this information: by passing command-line options, or by
-setting attributes on the processor instance in the rc file. The rc
-file has priority over the command-line options.</p>
+setting attributes on the <span
+class="language-symbol">processor</span> object in the rc file. The
+rc file has priority over the command-line options.</p>
 
 <p>The default location of the rc file is <span
 class="commandline">~/.maildirproc/default.rc</span> and the default
@@ -87,8 +88,8 @@ processing logic is defined in terms of if/elif/else statements and
 actions are performed by calling methods on the mail objects.</p>
 
 <p>The program has access to one special object: the <span
-class="language-symbol">processor</span> object which is an instance of
-the MaildirProcessor class.</p>
+class="language-symbol">processor</span> object, which is an instance of
+the <span class="language-symbol">MaildirProcessor</span> class.</p>
 
 <h3>The MaildirProcessor class</h3>
 
@@ -107,14 +108,15 @@ the MaildirProcessor class.</p>
 
 </dl>
 
-<p>Iteration over a <span class="commandline">MaildirProcess</span>
+<p>Iteration over a <span class="commandline">MaildirProcessor</span>
 instance yields <span class="language-symbol">Mail</span>
 instances.</p>
 
 <h3>The Mail class</h3>
 
-<p>Indexing the Mail class yields <span
-class="commandline">Header</span> instances.</p>
+<p>Indexing a <span class="language-symbol">Mail</span> instance with
+a header name (a string) returns a <span
+class="language-symbol">Header</span> instance.</p>
 
 <h4>Readable properties</h4>
 
@@ -136,7 +138,7 @@ class="commandline">Header</span> instances.</p>
 <dl class="class-attributes">
 
 <dt>copy(<i>maildir</i>)</dt>
-<dd>Copy the mail to <i>maildir</i>.</dd>
+<dd>Copy the mail to <i>maildir</i> (a string).</dd>
 
 <dt>delete()</dt>
 <dd>Delete the mail.</dd>
@@ -149,10 +151,12 @@ class="commandline">Header</span> instances.</p>
 
 <dt>from_mailing_list(<i>list</i>)</dt>
 <dd>Check whether the mail originated from the mailing list
-<i>list</i>. Currently, the headers Delivered-To, X-BeenThere and X-Mailing-List are checked.</dd>
+<i>list</i> (a string). Currently, the headers Delivered-To,
+Mailing-List, X-BeenThere and X-Mailing-List are checked. Returns a
+boolean.</dd>
 
 <dt>move(<i>maildir</i>)</dt>
-<dd>Move the mail to <i>maildir</i>.</dd>
+<dd>Move the mail to <i>maildir</i> (a string).</dd>
 
 </dl>
 
@@ -163,10 +167,10 @@ class="commandline">Header</span> instances.</p>
 <dl class="class-attributes">
 
 <dt>contains(<i>case-insensitive-string</i>)</dt>
-<dd>Check whether <i>case-insensitive-string</i> is part of the header.</dd>
+<dd>Check whether <i>case-insensitive-string</i> is part of the header. Returns a boolean.</dd>
 
 <dt>matches(<i>case-insensitive-regexp</i>)</dt>
-<dd>Check whether <i>case-insensitive-regexp</i> matches the header.</dd>
+<dd>Check whether <i>case-insensitive-regexp</i> matches the header. Returns a boolean.</dd>
 
 </dl>
 
@@ -177,10 +181,10 @@ class="commandline">Header</span> instances.</p>
 <dl class="class-attributes">
 
 <dt>contains(<i>case-insensitive-string</i>)</dt>
-<dd>Check whether <i>case-insensitive-string</i> is part of the To or Cc header.</dd>
+<dd>Check whether <i>case-insensitive-string</i> is part of the To or Cc header. Returns a boolean.</dd>
 
 <dt>matches(<i>case-insensitive-regexp</i>)</dt>
-<dd>Check whether <i>case-insensitive-regexp</i> matches the To or Cc header.</dd>
+<dd>Check whether <i>case-insensitive-regexp</i> matches the To or Cc header. Returns a boolean.</dd>
 
 </dl>
 

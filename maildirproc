@@ -96,7 +96,7 @@ class MailHeader(object):
             result_text = "contains"
         else:
             result_text = "does not contain"
-        self._mail._processor.log_debug(
+        self._mail.processor.log_debug(
             "... Header \"%s\" %s %r" % (self._name, result_text, string))
         return result
 
@@ -106,7 +106,7 @@ class MailHeader(object):
             result_text = "matches"
         else:
             result_text = "does not match"
-        self._mail._processor.log_debug(
+        self._mail.processor.log_debug(
             "... Header \"%s\" %s match %r" % (
                 self._name, result_text, regexp))
         return result
@@ -124,7 +124,7 @@ class MailTarget(object):
             result_text = "contains"
         else:
             result_text = "does not contain"
-        self._mail._processor.log_debug(
+        self._mail.processor.log_debug(
             "... Target %s %r" % (result_text, string))
         return result
 
@@ -134,7 +134,7 @@ class MailTarget(object):
             result_text = "matches"
         else:
             result_text = "does not match"
-        self._mail._processor.log_debug(
+        self._mail.processor.log_debug(
             "... Target %s match %r" % (result_text, regexp))
         return result
 
@@ -166,6 +166,10 @@ class MailBase(object):
         return self._path
     path = property(get_path)
 
+    def get_processor(self):
+        return self._processor
+    processor = property(get_processor)
+
     def get_target(self):
         return self._target
     target = property(get_target)
@@ -177,7 +181,8 @@ class MailBase(object):
     def from_mailing_list(self, list_name):
         list_name = list_name.lower()
         for headername in [
-                "delivered-to", "x-beenthere", "x-mailing-list"]:
+                "delivered-to", "mailing-list", "x-beenthere",
+                "x-mailing-list"]:
             if self[headername].contains(list_name):
                 self._processor.log_debug(
                     "... Mail is on mailing list %s" % list_name)
@@ -196,7 +201,7 @@ class MailBase(object):
             fp = open(self.path)
         except IOError, e:
             # The file was probably (re)moved by some other process.
-            self._processor._log_mail_opening_error(self.path, e)
+            self._processor.log_mail_opening_error(self.path, e)
             return
         self._processor.log("SHA1:       %r" % sha1sum(fp))
         self._processor.log("Message-ID: %r" % self["Message-ID"])
@@ -211,7 +216,7 @@ class MailBase(object):
             fp = open(self.path)
         except IOError, e:
             # The file was probably (re)moved by some other process.
-            self._processor._log_mail_opening_error(self.path, e)
+            self._processor.log_mail_opening_error(self.path, e)
             return False
         headers = email.Parser.Parser().parse(fp, headersonly=True)
         fp.close()
@@ -275,8 +280,8 @@ class Mail(MailBase):
             self._processor.maildir_base,
             maildir,
             "new",
-            self._processor._create_maildir_name())
-        self._processor._rename(self.path, target)
+            self._processor.create_maildir_name())
+        self._processor.rename(self.path, target)
 
     # ----------------------------------------------------------------
 
@@ -285,20 +290,20 @@ class Mail(MailBase):
             source_fp = open(self.path)
         except IOError, e:
             # The file was probably (re)moved by some other process.
-            self._processor._log_mail_opening_error(self.path, e)
+            self._processor.log_mail_opening_error(self.path, e)
             return
 
         tmp_target = os.path.join(
             self._processor.maildir_base,
             maildir,
             "tmp",
-            self._processor._create_maildir_name())
+            self._processor.create_maildir_name())
         try:
             tmp_target_fp = os.fdopen(
                 os.open(tmp_target, os.O_WRONLY | os.O_CREAT | os.O_EXCL),
                 "w")
         except IOError, e:
-            self._processor._log_io_error(
+            self._processor.log_io_error(
                 "Could not open %s for writing" % tmp_target,
                 e)
             return
@@ -307,7 +312,7 @@ class Mail(MailBase):
             source_fp.close()
             tmp_target_fp.close()
         except IOError, e:
-            self._processor._log_io_error(
+            self._processor.log_io_error(
                 "Could not copy %s to %s" % (self.path, tmp_target),
                 e)
             return
@@ -316,11 +321,11 @@ class Mail(MailBase):
             self._processor.maildir_base,
             maildir,
             "new",
-            self._processor._create_maildir_name())
+            self._processor.create_maildir_name())
         try:
-            self._processor._rename(tmp_target, target)
+            self._processor.rename(tmp_target, target)
         except IOError, e:
-            self._processor._log_io_error(
+            self._processor.log_io_error(
                 "Could not rename %s to %s" % (tmp_target, target),
                 e)
             return
@@ -330,7 +335,7 @@ class Mail(MailBase):
             os.unlink(self.path)
         except OSError, e:
             # The file was probably moved.
-            self._processor._log_io_error(
+            self._processor.log_io_error(
                 "Could not delete %s; some other process probably (re)moved"
                 " it" % self.path,
                 e)
@@ -349,7 +354,7 @@ class Mail(MailBase):
             source_fp = open(self.path)
         except IOError, e:
             # The file was probably moved.
-            self._processor._log_mail_opening_error(self.path, e)
+            self._processor.log_mail_opening_error(self.path, e)
             return
 
         p = subprocess.Popen(
@@ -461,8 +466,9 @@ class MaildirProcessor(object):
         self.log(text, 1)
 
     # ----------------------------------------------------------------
+    # Interface used by MailBase and descendants:
 
-    def _create_maildir_name(self):
+    def create_maildir_name(self):
         """Create and return a unique name for a Maildir message."""
         hostname = socket.gethostname()
         hostname = hostname.replace("/", "\\057")
@@ -476,17 +482,17 @@ class MaildirProcessor(object):
         self._deliveries += 1
         return "%d.%s.%s" % (now, delivery_identifier, hostname)
 
-    def _log_io_error(self, errmsg, os_errmsg):
+    def log_io_error(self, errmsg, os_errmsg):
         self.log_error(
             "Error: %s (error message from OS: %s)" % (errmsg, os_errmsg))
 
-    def _log_mail_opening_error(self, path, errmsg):
-        self._log_io_error(
+    def log_mail_opening_error(self, path, errmsg):
+        self.log_io_error(
             "Could not open %s; some other process probably (re)moved it" % (
                 path),
             errmsg)
 
-    def _rename(self, source, target):
+    def rename(self, source, target):
         try:
             os.rename(source, target)
         except OSError, e:

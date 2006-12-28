@@ -1,7 +1,10 @@
 Version 0.1.2 (2006-12-28)
 
-  - Made maildirproc handle badly encoded mail headers without
-    crashing.
+  - Made handling of mail header more robust so that badly encoded
+    mail headers don't produce a crash.
+  - Improved documentation.
+  - Made the mailing list header "Mailing-List" recognized in the
+    from_mailing_list method.
 
 Version 0.1.1 (2006-06-20)
 

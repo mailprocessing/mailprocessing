@@ -24,6 +24,13 @@ class TestFixture(TestCase):
         "\n",
         "Body.\n",
         ]
+    _testmail_data_bad_header = [
+        "From: Sender <sender@example.com>\n",
+        "To: Recipient <recipient@example.com>\n",
+        "Subject: =?ISO-2022-JP?B?gYqBiQ=?=\n",
+        "\n",
+        "Body.\n",
+        ]
 
     def setUp(self):
         shutil.rmtree(self._testdata_dir, True)
@@ -182,6 +189,20 @@ class TestMailAttributes(TestFixture):
 
         self.makedirs(["incoming", "dest"])
         self.create("a", "incoming/new/a")
+        self.run_mdp(rc, ["incoming"])
+        self.verify_result({"incoming": 0, "dest": 1})
+
+
+class TestBadHeader(TestFixture):
+    def test_bad_header(self):
+        rc = '''
+            for mail in processor:
+                if str(mail["subject"]) == "=?ISO-2022-JP?B?gYqBiQ=?=":
+                    mail.move("dest")
+            '''
+
+        self.makedirs(["incoming", "dest"])
+        self.create("bad_header", "incoming/new/bad_header")
         self.run_mdp(rc, ["incoming"])
         self.verify_result({"incoming": 0, "dest": 1})
 

@@ -34,10 +34,10 @@ file has priority over the command-line options.</p>
 
 <p>In a <a
 href="http://en.wikipedia.org/wiki/Maildir#Maildir.2B.2B">Maildir++</a>-style
-setup, the maildir base directory is typically set to <span
-class="commandline">~/Maildir</span> and the maildir list includes the
-directory <span class="commandline">.</span> to make maildirproc
-process the inbox.</p>
+setup, the maildir base directory should typically be set to <span
+class="commandline">~/Maildir</span> and the maildir list should
+include the directory <span class="commandline">.</span> to make
+maildirproc process the inbox.</p>
 
 <p>The default location of the rc file is <span
 class="commandline">~/.maildirproc/default.rc</span> and the default
@@ -103,15 +103,16 @@ the <span class="language-symbol">MaildirProcessor</span> class.</p>
 
 <h3>The MaildirProcessor class</h3>
 
+<p>Iteration over a <span class="commandline">MaildirProcessor</span>
+instance yields <span class="language-symbol">Mail</span>
+instances.</p>
+
 <h4>Readable and writable properties</h4>
 
 <dl class="class-attributes">
 
 <dt>auto_reload_rcfile</dt>
 <dd>Whether the rc file should be automatically reloaded when it has been modified. Assignment to this property overrides the corresponding command-line option.</dd>
-
-<dt>logfile</dt>
-<dd>Location of the log file. Assignment to this property overrides the corresponding command-line option.</dd>
 
 <dt>maildir_base</dt>
 <dd>The base directory of maildirs. Assignment to this property overrides the corresponding command-line option.</dd>
@@ -121,9 +122,14 @@ the <span class="language-symbol">MaildirProcessor</span> class.</p>
 
 </dl>
 
-<p>Iteration over a <span class="commandline">MaildirProcessor</span>
-instance yields <span class="language-symbol">Mail</span>
-instances.</p>
+<h4>Writable properties</h4>
+
+<dl class="class-attributes">
+
+<dt>logfile</dt>
+<dd>Location of the log file. Assignment to this property overrides the corresponding command-line option.</dd>
+
+</dl>
 
 <h3>The Mail class</h3>
 

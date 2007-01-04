@@ -16,6 +16,9 @@ processor.maildirs = ["incoming1", "incoming2"]
 # command-line option. Default value: ~/.maildirproc/log
 processor.logfile = "~/.maildirproc.log"
 
+# Turn on automatic reloading of this file when it has been modified.
+processor.auto_reload_rcfile = True
+
 # Iterate over all mails found in the maildirs. The loop never
 # terminates, except if the --once command-line option is passed (or a
 # fatal error occurs).

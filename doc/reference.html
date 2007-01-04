@@ -49,8 +49,8 @@ class="commandline">~/.maildirproc/log</span>.</p>
 <dt>-h, --help</dt>
 <dd>show this help message and exit</dd>
 
-<dt>-b DIRECTORY, --maildir-base=DIRECTORY</dt>
-<dd>set maildir base directory</dd>
+<dt>--auto-reload-rcfile</dt>
+<dd>turn on automatic reloading of the rc file when it has been modified</dd>
 
 <dt>--dry-run</dt>
 <dd>just log what should have been done; implies <span class="commandline">--once</span></dd>
@@ -63,6 +63,9 @@ class="commandline">~/.maildirproc/log</span>.</p>
 
 <dt>-m NAME, --maildir=NAME</dt>
 <dd>add NAME (a subdirectory of the maildir base directory) to the set of maildir directories to process; can be passed multiple times</dd>
+
+<dt>-b DIRECTORY, --maildir-base=DIRECTORY</dt>
+<dd>set maildir base directory</dd>
 
 <dt>--once</dt>
 <dd>only process the maildirs once and then exit; without this flag, maildirproc will scan the maildirs continuously</dd>
@@ -96,6 +99,9 @@ the <span class="language-symbol">MaildirProcessor</span> class.</p>
 <h4>Readable and writable properties</h4>
 
 <dl class="class-attributes">
+
+<dt>auto_reload_rcfile</dt>
+<dd>Whether the rc file should be automatically reloaded when it has been modified. Assignment to this property overrides the corresponding command-line option.</dd>
 
 <dt>logfile</dt>
 <dd>Location of the log file. Assignment to this property overrides the corresponding command-line option.</dd>

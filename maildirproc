@@ -381,19 +381,31 @@ class Mail(MailBase):
 
 class MaildirProcessor(object):
     def __init__(
-            self, log_fp, log_level=1, dry_run=False, run_once=False):
+            self, rcfile, log_fp, log_level=1, dry_run=False, run_once=False,
+            auto_reload_rcfile=False):
+        self._rcfile = rcfile
         self._log_fp = log_fp
         self._log_level = log_level
         self._run_once = run_once or dry_run
+        self._auto_reload_rcfile = auto_reload_rcfile
         self._maildir_base = None
         self._deliveries = 0
         self._maildirs = []
         self._sendmail = "/usr/sbin/sendmail"
         self._sendmail_flags = "-i"
+        self.rcfile_modified = False
+        self._previous_rcfile_mtime = os.path.getmtime(rcfile)
         if dry_run:
             self._mail_class = DryRunMail
         else:
             self._mail_class = Mail
+
+    def get_auto_reload_rcfile(self):
+        return self._auto_reload_rcfile
+    def set_auto_reload_rcfile(self, value):
+        self._auto_reload_rcfile = value
+    auto_reload_rcfile = property(
+        get_auto_reload_rcfile, set_auto_reload_rcfile)
 
     def set_logfile(self, path_or_fp):
         if isinstance(path_or_fp, basestring):
@@ -413,6 +425,10 @@ class MaildirProcessor(object):
     def set_maildirs(self, maildirs):
         self._maildirs = maildirs
     maildirs = property(get_maildirs, set_maildirs)
+
+    def get_rcfile(self):
+        return self._rcfile
+    rcfile = property(get_rcfile)
 
     def get_sendmail(self):
         return self._sendmail
@@ -435,8 +451,16 @@ class MaildirProcessor(object):
             self.log_error("Error: No maildirs to process")
             return
 
+        self.rcfile_modified = False
         mtime_map = {}
         while True:
+            if self.auto_reload_rcfile:
+                current_rcfile_mtime = os.path.getmtime(self.rcfile)
+                if current_rcfile_mtime != self._previous_rcfile_mtime:
+                    self._previous_rcfile_mtime = current_rcfile_mtime
+                    self.rcfile_modified = True
+                    self.log_info("Detected modified RC file; reloading")
+                    break
             for maildir in self._maildirs:
                 maildir_path = os.path.join(self._maildir_base, maildir)
                 for subdir in ["cur", "new"]:
@@ -521,12 +545,12 @@ def main(argv):
             " boxes and processes found mail as defined by an rc file. See"
             " http://joel.rosdahl.net/maildirproc/ for more information."))
     parser.add_option(
-        "-b",
-        "--maildir-base",
-        type="string",
-        dest="maildir_base",
-        metavar="DIRECTORY",
-        help="set maildir base directory")
+        "--auto-reload-rcfile",
+        action="store_true",
+        default=False,
+        help=(
+            "turn on automatic reloading of the rc file when it has been"
+            " modified"))
     parser.add_option(
         "--dry-run",
         action="store_true",
@@ -562,6 +586,13 @@ def main(argv):
             "add NAME (a subdirectory of the maildir base directory) to the"
             " set of maildir directories to process; can be passed multiple"
             " times"))
+    parser.add_option(
+        "-b",
+        "--maildir-base",
+        type="string",
+        dest="maildir_base",
+        metavar="DIRECTORY",
+        help="set maildir base directory")
     parser.add_option(
         "--once",
         action="store_true",
@@ -610,8 +641,10 @@ def main(argv):
 
     log_level = options.log_level + options.verbosity
 
+    rcfile = os.path.expanduser(options.rcfile)
     processor = MaildirProcessor(
-        log_fp, log_level, options.dry_run, options.once)
+        rcfile, log_fp, log_level, options.dry_run, options.once,
+        options.auto_reload_rcfile)
     processor.log("")
     processor.log("Starting maildirproc at %s" % iso_8601_now())
 
@@ -625,18 +658,24 @@ def main(argv):
         processor.sendmail_flags = os.environ["SENDMAILFLAGS"]
     environment = {"processor": processor}
 
-    try:
-        if options.rcfile == "-":
-            processor.log("RC file: <standard input>")
-            fp = sys.stdin
-        else:
-            rcfile = os.path.expanduser(options.rcfile)
-            processor.log("RC file: %r" % rcfile)
-            fp = open(rcfile)
-    except IOError, e:
-        processor.log_error("Error: Could not open RC file: %s" % e)
-    else:
+    if rcfile == "-":
+        processor.log("RC file: <standard input>")
+        fp = sys.stdin
         exec fp in environment
+    else:
+        processor.log("RC file: %r" % rcfile)
+        while True:
+            try:
+                fp = open(rcfile)
+            except IOError, e:
+                processor.log_error("Error: Could not open RC file: %s" % e)
+                break
+            else:
+                exec fp in environment
+                if not processor.rcfile_modified:
+                    # Normal exit.
+                    break
+                # We should reload the RC file.
 
 
 if __name__ == "__main__":

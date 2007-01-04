@@ -175,6 +175,7 @@ def handle_incoming_unsorted(mail):
 ######################################################################
 
 processor.maildir_base = "~/maildirs"
+processor.auto_reload_rcfile = True
 
 handle_mapping = {
     "incoming.ham": handle_incoming_ham,

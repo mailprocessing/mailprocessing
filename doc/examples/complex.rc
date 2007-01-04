@@ -87,13 +87,13 @@ def handle_incoming_ham(mail):
 def handle_incoming_spam(mail):
     processor.log("==> Learning as spam")
     register_spam(mail),
-    mail.move("mail.spam")
+    mail.move(".mail.spam")
 
 def handle_incoming_unknown(mail):
     processor.log("... Autolearning spamicity")
     if autolearn_and_check_spam(mail):
         processor.log("==> Spam detected and learned")
-        mail.move("mail.spam")
+        mail.move(".mail.spam")
     else:
         processor.log("==> Ham detected and learned")
         mail.move("incoming.unsorted")
@@ -104,7 +104,7 @@ def handle_incoming_unsorted(mail):
     # Mail to mailing lists.
     for (boxname, listname) in [
         # ...
-        ("list.python", "python-list@python.org"),
+        (".list.python", "python-list@python.org"),
         # ...
         ]:
         if mail.from_mailing_list(listname):
@@ -115,7 +115,7 @@ def handle_incoming_unsorted(mail):
     # Mail to specific addresses.
     for (boxname, address_re) in [
         # ...
-        ("mail.kofoto-list-owner",
+        (".mail.kofoto-list-owner",
          "kofoto-.*-owner@kofoto\\.rosdahl\\.net"),
         # ...
         ]:
@@ -127,7 +127,7 @@ def handle_incoming_unsorted(mail):
     # Mail from specific addresses.
     for (boxname, address_re) in [
         # ...
-        ("mail.sourceforge",
+        (".mail.sourceforge",
          "(noreply|jrosdahl)@sourceforge\\.net|"
          "joel\\+sourceforge@rosdahl\\.net"),
         # ...
@@ -142,46 +142,46 @@ def handle_incoming_unsorted(mail):
     # Cron mail.
     if is_cron_mail(mail):
         processor.log("... Cron mail")
-        mail.move("mail.cron")
+        mail.move(".mail.cron")
         return
 
     # Private Debian mail.
     if mail.target.matches("joel@.*debian\\.org|.*@packages\\.debian\\.org"):
         processor.log("... Private Debian mail")
-        mail.move("mail.debian")
+        mail.move(".mail.debian")
         return
 
     # Other private mail.
     if mail.target.matches("joel@(rosdahl\\.net|lysator\\.liu\\.se)"):
         processor.log("... Other private mail")
-        mail.move("mail.private")
+        mail.move(".mail.private")
         return
 
     # Bcc to myself.
     if mail["from"].contains("joel@debian.org"):
         processor.log("... BCC to joel@debian.org")
-        mail.move("mail.debian")
+        mail.move(".mail.debian")
         return
     # ...
     if mail["from"].contains("joel@rosdahl.net"):
         processor.log("... BCC to joel@rosdahl.net")
-        mail.move("mail.private")
+        mail.move(".mail.private")
         return
 
     # Unmatched mail.
     processor.log("... No rule matched")
-    mail.move("mail.junk")
+    mail.move(".mail.junk")
 
 ######################################################################
 
-processor.maildir_base = "~/maildirs"
+processor.maildir_base = "~/Maildir"
 processor.auto_reload_rcfile = True
 
 handle_mapping = {
-    "incoming.ham": handle_incoming_ham,
-    "incoming.spam": handle_incoming_spam,
-    "incoming.unknown": handle_incoming_unknown,
-    "incoming.unsorted": handle_incoming_unsorted,
+    ".incoming.ham": handle_incoming_ham,
+    ".incoming.spam": handle_incoming_spam,
+    ".incoming.unknown": handle_incoming_unknown,
+    ".incoming.unsorted": handle_incoming_unsorted,
     }
 processor.maildirs = handle_mapping.keys()
 

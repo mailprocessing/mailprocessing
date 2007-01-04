@@ -5,10 +5,10 @@
 #
 # maildirproc could be run like this:
 #
-#     maildirproc -r simple.rc -b ~/maildirs -m incoming
+#     maildirproc -r simple.rc -b ~/Maildir -m .
 
 for mail in processor:
     if mail["X-Spam-Status"].matches("^Yes"):
-        mail.move("incoming.spam")
+        mail.move("Spam")
     else:
-        mail.move("incoming.nonspam")
+        mail.move("Other")

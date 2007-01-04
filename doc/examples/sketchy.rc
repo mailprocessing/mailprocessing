@@ -6,11 +6,11 @@
 
 # Set maildir base directory. Alternative: pass the -b/--maildir-base
 # command-line option.
-processor.maildir_base = "~/maildirs"
+processor.maildir_base = "~/Maildir"
 
 # Set maildirs to process. Alternative: pass one or several
 # -m/--maildir command-line options.
-processor.maildirs = ["incoming1", "incoming2"]
+processor.maildirs = [".", "SubFolder1", "SubFolder2"]
 
 # Set location of the log file. Alternative: pass the -l/--logfile
 # command-line option. Default value: ~/.maildirproc/log

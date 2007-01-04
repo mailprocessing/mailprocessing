@@ -16,12 +16,12 @@ For some examples, see the <a href="examples/">examples</a> directory.
 
 <h2>Default behaviour</h2>
 
-<p>By default, maildirproc continuously monitors a number of maildirs
-and processes mail in them according to logic in an <i>rc file</i>.
-When there are no more mail to process, maildirproc sleeps one second
-and then checks again. And so on. To make maildirproc exit when there
-are no mail left, pass the <span class="commandline">--once</span>
-option.</p>
+<p>By default, maildirproc continuously monitors a number of <a
+href="http://en.wikipedia.org/wiki/Maildir">maildir</a>s and processes
+mail in them according to logic in an <i>rc file</i>. When there is
+no more mail to process, maildirproc sleeps one second and then checks
+again. And so on. To make maildirproc exit when there are no mail
+left, pass the <span class="commandline">--once</span> option.</p>
 
 <p>maildirproc keeps a list of maildirs to process. The maildirs are
 expected to be subdirectories of a common base directory, the
@@ -29,8 +29,15 @@ expected to be subdirectories of a common base directory, the
 maildirs must be specified for maildirproc to run. There are two ways
 to specify this information: by passing command-line options, or by
 setting attributes on the <span
-class="language-symbol">processor</span> object in the rc file. The
-rc file has priority over the command-line options.</p>
+class="language-symbol">processor</span> object in the rc file. The rc
+file has priority over the command-line options.</p>
+
+<p>In a <a
+href="http://en.wikipedia.org/wiki/Maildir#Maildir.2B.2B">Maildir++</a>-style
+setup, the maildir base directory is typically set to <span
+class="commandline">~/Maildir</span> and the maildir list includes the
+directory <span class="commandline">.</span> to make maildirproc
+process the inbox.</p>
 
 <p>The default location of the rc file is <span
 class="commandline">~/.maildirproc/default.rc</span> and the default

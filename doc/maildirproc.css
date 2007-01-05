@@ -40,7 +40,7 @@ div.quote {
     font-style: italic;
 }
 
-span.commandline {
+span.command-line {
     font-family: monospace;
 }
 
@@ -48,7 +48,7 @@ span.language-symbol {
     font-family: monospace;
 }
 
-dl.commandline-options dt {
+dl.command-line-options dt {
     font-family: monospace;
 }
 

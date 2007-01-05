@@ -17,6 +17,12 @@ h1, h2, h3 {
     border-width: 0 0 1px 0;
 }
 
+dl {
+    border-left: 1px black solid;
+    margin-left: 1em;
+    padding-left: 1em;
+}
+
 div.code-example {
     font-family: monospace;
     margin-top: 1em;

@@ -17,6 +17,8 @@ processor.maildirs = [".", "SubFolder1", "SubFolder2"]
 processor.logfile = "~/.maildirproc.log"
 
 # Turn on automatic reloading of this file when it has been modified.
+# Alternative: pass the --auto-reload-rcfile command-line option.
+# Default value: False.
 processor.auto_reload_rcfile = True
 
 # Iterate over all mails found in the maildirs. The loop never

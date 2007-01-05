@@ -1,0 +1,51 @@
+# -*- python -*-
+#
+# This maildirproc program runs bogofilter on mail in ~/Maildir and
+# sorts the mails into ~/Maildir/.Spam, ~/Maildir/.Ham,
+# ~/Maildir/.Unsure and ~/Maildir/.Error according to the return value
+# of bogofilter.
+#
+# maildirproc could be run like this:
+#
+#     maildirproc -r bogofilter.rc
+
+import subprocess
+
+# --------------------------------------------------------------------
+
+# Base directory of maildir boxes.
+processor.maildir_base = "~/Maildir"
+
+# Scan the inbox.
+processor.maildirs = ["."]
+
+# --------------------------------------------------------------------
+
+# Utility function that runs bogofilter in auto-learn mode (the -u
+# option) and returns bogofilter's return value.
+def bogofilter(mail):
+    p = subprocess.Popen(
+        ["bogofilter", "-u", "-v", "-I", mail.path],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT)
+    (output, _) = p.communicate()
+    processor.log("*** Bogofilter result: %r" % output.rstrip())
+    if p.returncode not in [0, 1, 2]:
+        processor.log_error(
+            "Error running bogofilter: Return code = %d" % p.returncode)
+    return p.returncode
+
+# --------------------------------------------------------------------
+
+for mail in processor:
+    # See bogofilter documentation for information about its return
+    # value.
+    ret = bogofilter(mail)
+    if ret == 0:
+        mail.move(".Spam")
+    elif ret == 1:
+        mail.move(".Ham")
+    elif ret == 2:
+        mail.move(".Unsure")
+    else:
+        mail.move(".Error")

@@ -44,6 +44,15 @@ class="commandline">~/.maildirproc/default.rc</span> and the default
 location of the log file is <span
 class="commandline">~/.maildirproc/log</span>.</p>
 
+<p>maildirproc can optionally reload the rc file whenever a
+modification is detected (that is, the file's mtime has changed). This
+automatic reloading is turned off by default and can be enabled either
+by passing the <span class="commandline">--auto-reload-rcfile</span>
+commandline option or by setting the <span
+class="language-symbol">auto_reload_rcfile</span> property to <span
+class="language-symbol">True</span> on the <span
+class="language-symbol">processor</span> object in the rc file.</p>
+
 <h2>Commandline options</h2>
 
 <p> maildirproc takes these command-line options:</p>

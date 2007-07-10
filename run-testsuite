@@ -103,15 +103,28 @@ class TestBasics(TestFixture):
             '''
 
         self.makedirs(["incoming", "dest"])
-        self.create("a", "incoming/new/a")
+        self.create("a", "incoming/cur/a")
+        self.create("a", "incoming/new/b")
         self.run_mdp(rc, ["incoming"])
-        self.verify_result({"dest/new": 1})
-        self.assertEqual(
-            len(os.listdir(joinpath(self._maildir_dir, "dest", "cur"))),
-            0)
-        self.assertEqual(
-            len(os.listdir(joinpath(self._maildir_dir, "dest", "tmp"))),
-            0)
+        self.verify_result({"dest/cur": 1, "dest/new": 1})
+        for x in ["incoming/tmp", "incoming/cur", "incoming/new", "dest/tmp"]:
+            self.assertEqual(
+                len(os.listdir(joinpath(self._maildir_dir, x))),
+                0)
+
+    def test_move_keeps_flags(self):
+        rc = '''
+            for mail in processor:
+                mail.move("dest")
+            '''
+
+        self.makedirs(["incoming", "dest"])
+        self.create("a", "incoming/cur/a:2,x")
+        self.run_mdp(rc, ["incoming"])
+        self.verify_result({"dest/cur": 1})
+        filename = os.listdir(joinpath(self._maildir_dir, "dest/cur"))[0]
+        self.assertNotEqual(filename, "a:2,x")
+        self.assert_(filename.endswith(":2,x"))
 
     def test_copy(self):
         rc = '''
@@ -120,9 +133,28 @@ class TestBasics(TestFixture):
             '''
 
         self.makedirs(["incoming", "dest"])
-        self.create("a", "incoming/new/a")
+        self.create("a", "incoming/cur/a")
+        self.create("a", "incoming/new/b")
         self.run_mdp(rc, ["incoming"])
-        self.verify_result({"incoming/new": 1, "dest/new": 1})
+        self.verify_result(
+            {"incoming/cur": 1,
+             "incoming/new": 1,
+             "dest/cur": 1,
+             "dest/new": 1})
+
+    def test_copy_keeps_flags(self):
+        rc = '''
+            for mail in processor:
+                mail.copy("dest")
+            '''
+
+        self.makedirs(["incoming", "dest"])
+        self.create("a", "incoming/cur/a:2,x")
+        self.run_mdp(rc, ["incoming"])
+        self.verify_result({"incoming/cur": 1, "dest/cur": 1})
+        filename = os.listdir(joinpath(self._maildir_dir, "dest/cur"))[0]
+        self.assertNotEqual(filename, "a:2,x")
+        self.assert_(filename.endswith(":2,x"))
 
     def test_forward(self):
         rc = '''

@@ -281,11 +281,12 @@ class Mail(MailBase):
 
     def move(self, maildir):
         self._processor.log("==> Moving to %s" % maildir)
+        flagpart = self._get_flagpart()
         target = os.path.join(
             self._processor.maildir_base,
             maildir,
-            "new",
-            self._processor.create_maildir_name())
+            self.path.split(os.sep)[-2], # new/cur
+            self._processor.create_maildir_name() + flagpart)
         self._processor.rename(self.path, target)
 
     # ----------------------------------------------------------------
@@ -322,11 +323,12 @@ class Mail(MailBase):
                 e)
             return
 
+        flagpart = self._get_flagpart()
         target = os.path.join(
             self._processor.maildir_base,
             maildir,
-            "new",
-            self._processor.create_maildir_name())
+            self.path.split(os.sep)[-2], # new/cur
+            self._processor.create_maildir_name() + flagpart)
         try:
             self._processor.rename(tmp_target, target)
         except IOError, e:
@@ -377,6 +379,13 @@ class Mail(MailBase):
 
         if delete:
             self._delete()
+
+    def _get_flagpart(self):
+        parts = os.path.basename(self.path).split(":2,")
+        if len(parts) == 2:
+            return ":2," + parts[1]
+        else:
+            return ""
 
 
 class MaildirProcessor(object):

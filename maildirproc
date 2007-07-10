@@ -665,7 +665,8 @@ def main(argv):
         rcfile, log_fp, log_level, options.dry_run, options.once,
         options.auto_reload_rcfile)
     processor.log("")
-    processor.log("Starting maildirproc at %s" % iso_8601_now())
+    processor.log(
+        "Starting maildirproc %s at %s" % (parser.version, iso_8601_now()))
 
     if options.maildir_base:
         processor.maildir_base = options.maildir_base

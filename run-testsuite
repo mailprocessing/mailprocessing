@@ -81,8 +81,9 @@ class TestFixture(TestCase):
             i = 0
             for subdir in ["cur", "new"]:
                 path = joinpath(self._maildir_dir, maildir, subdir)
-                i += len(os.listdir(path))
-            actual[maildir] = i
+                number = len(os.listdir(path))
+                if number > 0:
+                    actual[joinpath(maildir, subdir)] = number
         self.assertEqual(result, actual)
 
 
@@ -93,7 +94,7 @@ class TestBasics(TestFixture):
         self.makedirs(["incoming"])
         self.create("a", "incoming/new/a")
         self.run_mdp(rc, ["incoming"])
-        self.verify_result({"incoming": 1})
+        self.verify_result({"incoming/new": 1})
 
     def test_move(self):
         rc = '''
@@ -104,7 +105,7 @@ class TestBasics(TestFixture):
         self.makedirs(["incoming", "dest"])
         self.create("a", "incoming/new/a")
         self.run_mdp(rc, ["incoming"])
-        self.verify_result({"incoming": 0, "dest": 1})
+        self.verify_result({"dest/new": 1})
         self.assertEqual(
             len(os.listdir(joinpath(self._maildir_dir, "dest", "cur"))),
             0)
@@ -121,7 +122,7 @@ class TestBasics(TestFixture):
         self.makedirs(["incoming", "dest"])
         self.create("a", "incoming/new/a")
         self.run_mdp(rc, ["incoming"])
-        self.verify_result({"incoming": 1, "dest": 1})
+        self.verify_result({"incoming/new": 1, "dest/new": 1})
 
     def test_forward(self):
         rc = '''
@@ -132,7 +133,7 @@ class TestBasics(TestFixture):
         self.makedirs(["incoming"])
         self.create("a", "incoming/new/a")
         self.run_mdp(rc, ["incoming"])
-        self.verify_result({"incoming": 0})
+        self.verify_result({})
 
         expected = ["foo@example.com\n"] + self._testmail_data_a
         fp = open(joinpath(self._testdata_dir, "delivered"))
@@ -148,7 +149,7 @@ class TestBasics(TestFixture):
         self.makedirs(["incoming"])
         self.create("a", "incoming/new/a")
         self.run_mdp(rc, ["incoming"])
-        self.verify_result({"incoming": 1})
+        self.verify_result({"incoming/new": 1})
 
         expected = ["foo@example.com\n"] + self._testmail_data_a
         fp = open(joinpath(self._testdata_dir, "delivered"))
@@ -164,7 +165,7 @@ class TestBasics(TestFixture):
         self.makedirs(["incoming"])
         self.create("a", "incoming/new/a")
         self.run_mdp(rc, ["incoming"])
-        self.verify_result({"incoming": 0})
+        self.verify_result({})
 
     def test_multiple_mail(self):
         rc = '''
@@ -176,7 +177,7 @@ class TestBasics(TestFixture):
         for i in range(10):
             self.create("a", "incoming/new/%d" % i)
         self.run_mdp(rc, ["incoming"])
-        self.verify_result({"incoming": 0, "dest": 10})
+        self.verify_result({"dest/new": 10})
 
 
 class TestMailAttributes(TestFixture):
@@ -190,7 +191,7 @@ class TestMailAttributes(TestFixture):
         self.makedirs(["incoming", "dest"])
         self.create("a", "incoming/new/a")
         self.run_mdp(rc, ["incoming"])
-        self.verify_result({"incoming": 0, "dest": 1})
+        self.verify_result({"dest/new": 1})
 
 
 class TestBadHeader(TestFixture):
@@ -204,7 +205,7 @@ class TestBadHeader(TestFixture):
         self.makedirs(["incoming", "dest"])
         self.create("bad_header", "incoming/new/bad_header")
         self.run_mdp(rc, ["incoming"])
-        self.verify_result({"incoming": 0, "dest": 1})
+        self.verify_result({"dest/new": 1})
 
 
 class TestHeaderMatches(TestFixture):
@@ -218,7 +219,7 @@ class TestHeaderMatches(TestFixture):
         self.makedirs(["incoming", "dest"])
         self.create("a", "incoming/new/a")
         self.run_mdp(rc, ["incoming"])
-        self.verify_result({"incoming": 1, "dest": 0})
+        self.verify_result({"incoming/new": 1})
 
     def test_positive_header_matches(self):
         rc = '''
@@ -230,7 +231,7 @@ class TestHeaderMatches(TestFixture):
         self.makedirs(["incoming", "dest"])
         self.create("a", "incoming/new/a")
         self.run_mdp(rc, ["incoming"])
-        self.verify_result({"incoming": 0, "dest": 1})
+        self.verify_result({"dest/new": 1})
 
 
 class TestHeaderContains(TestFixture):
@@ -244,7 +245,7 @@ class TestHeaderContains(TestFixture):
         self.makedirs(["incoming", "dest"])
         self.create("a", "incoming/new/a")
         self.run_mdp(rc, ["incoming"])
-        self.verify_result({"incoming": 1, "dest": 0})
+        self.verify_result({"incoming/new": 1})
 
     def test_positive_header_contains(self):
         rc = '''
@@ -256,7 +257,7 @@ class TestHeaderContains(TestFixture):
         self.makedirs(["incoming", "dest"])
         self.create("a", "incoming/new/a")
         self.run_mdp(rc, ["incoming"])
-        self.verify_result({"incoming": 0, "dest": 1})
+        self.verify_result({"dest/new": 1})
 
 
 class TestTargetContains(TestFixture):
@@ -272,7 +273,7 @@ class TestTargetContains(TestFixture):
         self.makedirs(["incoming", "dest"])
         self.create("a", "incoming/new/a")
         self.run_mdp(rc, ["incoming"])
-        self.verify_result({"incoming": 0, "dest": 2})
+        self.verify_result({"dest/new": 2})
 
 
 class TestTargetMatches(TestFixture):
@@ -288,7 +289,7 @@ class TestTargetMatches(TestFixture):
         self.makedirs(["incoming", "dest"])
         self.create("a", "incoming/new/a")
         self.run_mdp(rc, ["incoming"])
-        self.verify_result({"incoming": 0, "dest": 2})
+        self.verify_result({"dest/new": 2})
 
 
 class TestFromMailingList(TestFixture):
@@ -315,13 +316,11 @@ class TestFromMailingList(TestFixture):
         self.create("a", "incoming/new/a")
         self.run_mdp(rc, ["incoming"])
         self.verify_result({
-            "incoming": 1,
-            "to": 0,
-            "cc": 0,
-            "delivered-to": 1,
-            "x-beenthere": 1,
-            "x-mailing-list": 1,
-            "mailing-list": 1,
+            "incoming/new": 1,
+            "delivered-to/new": 1,
+            "x-beenthere/new": 1,
+            "x-mailing-list/new": 1,
+            "mailing-list/new": 1,
             })
 
 ######################################################################

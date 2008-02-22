@@ -18,10 +18,11 @@ For some examples, see the <a href="examples/">examples</a> directory.
 
 <p>By default, maildirproc continuously monitors a number of <a
 href="http://en.wikipedia.org/wiki/Maildir">maildir</a>s and processes
-mail in them according to logic in an <i>rc file</i>. When there is
-no more mail to process, maildirproc sleeps one second and then checks
-again. And so on. To make maildirproc exit when there are no mail
-left, pass the <span class="command-line">--once</span> option.</p>
+mail in them according to logic in an <i>rc file</i>. It also logs its
+actions to a log file. When there is no more mail to process,
+maildirproc sleeps one second and then checks again. And so on. To
+make maildirproc exit when there is no mail left, pass the <span
+class="command-line">--once</span> option.</p>
 
 <p>maildirproc keeps a list of maildir directories to process. At
 least one maildir directory must be specified for maildirproc to run.

@@ -23,12 +23,13 @@ no more mail to process, maildirproc sleeps one second and then checks
 again. And so on. To make maildirproc exit when there are no mail
 left, pass the <span class="command-line">--once</span> option.</p>
 
-<p>maildirproc keeps a list of maildirs to process. The maildirs are
-expected to be subdirectories of a common base directory, the
-<i>maildir base directory</i>. Both the base directory and the list of
-maildirs must be specified for maildirproc to run. There are two ways
-to specify this information: by passing command line options, or by
-setting attributes on the <span
+<p>maildirproc keeps a list of maildir directories to process. At
+least one maildir directory must be specified for maildirproc to run.
+A maildir directory path can be absolute (starting with a slash) or
+non-absolute. In the latter case, it will be relative the <i>maildir
+base directory</i>, which defaults to the current working directory.
+There are two ways to specify this information: by passing command
+line options, or by setting attributes on the <span
 class="language-symbol">processor</span> object in the rc file. The rc
 file has priority over the command line options.</p>
 
@@ -77,11 +78,11 @@ class="language-symbol">processor</span> object in the rc file.</p>
 <dt>--log-level=INTEGER</dt>
 <dd>only include log messages with this log level or lower; defaults to 1</dd>
 
-<dt>-m NAME, --maildir=NAME</dt>
-<dd>add NAME (a subdirectory of the maildir base directory) to the set of maildir directories to process; can be passed multiple times</dd>
+<dt>-m DIRECTORY, --maildir=DIRECTORY</dt>
+<dd>add DIRECTORY to the set of maildir directories to process (can be passed multiple times); if DIRECTORY is relative, it is relative to the maildir base directory</dd>
 
 <dt>-b DIRECTORY, --maildir-base=DIRECTORY</dt>
-<dd>set maildir base directory</dd>
+<dd>set maildir base directory; defaults to the current working directory</dd>
 
 <dt>--once</dt>
 <dd>only process the maildirs once and then exit; without this flag, maildirproc will scan the maildirs continuously</dd>

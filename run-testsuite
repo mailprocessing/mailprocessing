@@ -52,14 +52,19 @@ class TestFixture(TestCase):
         fp.write("".join(getattr(self, "_testmail_data_%s" % name)))
         fp.close()
 
-    def run_mdp(self, rc, maildirs):
+    def run_mdp(self, rc, maildirs, maildir_base=""):
+        if maildir_base is None:
+            extra_argv = []
+        elif maildir_base == "":
+            extra_argv = ["-b", self._maildir_dir]
+        else:
+            extra_argv = ["-b", maildir_base]
         argv = [
             "./maildirproc",
             "--once",
             "-l", "/dev/null",
             "-r", "-",
-            "-b", self._maildir_dir,
-            ]
+            ] + extra_argv
         for maildir in maildirs:
             argv.extend(["-m", maildir])
         sh_cmd = "-c 'a=%s/delivered; echo $1 >$a; cat >>$a'" % (
@@ -74,6 +79,7 @@ class TestFixture(TestCase):
             )
         p.communicate(textwrap.dedent(rc))
         p.wait()
+        assert(p.returncode == 0)
 
     def verify_result(self, result):
         actual = {}
@@ -95,6 +101,22 @@ class TestBasics(TestFixture):
         self.create("a", "incoming/new/a")
         self.run_mdp(rc, ["incoming"])
         self.verify_result({"incoming/new": 1})
+
+    def test_default_maildir_base(self):
+        rc = '''
+            for mail in processor:
+                mail.move("%s/dest")
+            ''' % self._maildir_dir
+
+        self.makedirs(["incoming", "dest"])
+        self.create("a", "incoming/cur/a")
+        self.create("a", "incoming/new/b")
+        self.run_mdp(rc, [joinpath(self._maildir_dir, "incoming")], None)
+        self.verify_result({"dest/cur": 1, "dest/new": 1})
+        for x in ["incoming/tmp", "incoming/cur", "incoming/new", "dest/tmp"]:
+            self.assertEqual(
+                len(os.listdir(joinpath(self._maildir_dir, x))),
+                0)
 
     def test_move(self):
         rc = '''

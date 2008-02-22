@@ -32,8 +32,6 @@ delivered mail.
 """
 
 
-import email.Header
-import email.Parser
 import os
 import random
 import re
@@ -43,6 +41,9 @@ import socket
 import subprocess
 import sys
 import time
+from email import Errors as email_errors
+from email import Header as email_header
+from email import Parser as email_parser
 from optparse import OptionParser
 
 
@@ -218,15 +219,15 @@ class MailBase(object):
             # The file was probably (re)moved by some other process.
             self._processor.log_mail_opening_error(self.path, e)
             return False
-        headers = email.Parser.Parser().parse(fp, headersonly=True)
+        headers = email_parser.Parser().parse(fp, headersonly=True)
         fp.close()
         for name in headers.keys():
             for header in headers.get_all(name, []):
                 try:
                     value_parts = [
-                        x for (x, _) in email.Header.decode_header(header)]
+                        x for (x, _) in email_header.decode_header(header)]
                     value = "\n".join(value_parts)
-                except (email.Errors.HeaderParseError, ValueError):
+                except (email_errors.HeaderParseError, ValueError):
                     self._processor.log_error(
                         "Error: Could not decode header %r" % header)
                     value = header.encode()

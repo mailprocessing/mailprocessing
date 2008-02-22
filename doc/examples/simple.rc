@@ -9,6 +9,6 @@
 
 for mail in processor:
     if mail["X-Spam-Status"].matches("^Yes"):
-        mail.move("Spam")
+        mail.move(".Spam")
     else:
-        mail.move("Other")
+        mail.move(".Other")

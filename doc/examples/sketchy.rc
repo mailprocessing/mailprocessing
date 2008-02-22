@@ -5,7 +5,8 @@
 # a demonstration of what's available.
 
 # Set maildir base directory. Alternative: pass the -b/--maildir-base
-# command-line option.
+# command-line option. If not set, the current working directory (".") 
+# is used.
 processor.maildir_base = "~/Maildir"
 
 # Set maildirs to process. Alternative: pass one or several

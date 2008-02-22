@@ -226,7 +226,7 @@ class MailBase(object):
                     value_parts = [
                         x for (x, _) in email.Header.decode_header(header)]
                     value = "\n".join(value_parts)
-                except email.Errors.HeaderParseError:
+                except (email.Errors.HeaderParseError, ValueError):
                     self._processor.log_error(
                         "Error: Could not decode header %r" % header)
                     value = header.encode()

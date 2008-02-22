@@ -454,12 +454,10 @@ class MaildirProcessor(object):
 
     def __iter__(self):
         if self.maildir_base is None:
-            self.log_error("Error: Maildir base directory not set")
-            sys.exit(1)
+            self.fatal_error("Error: Maildir base directory not set")
 
         if not self._maildirs:
-            self.log_error("Error: No maildirs to process")
-            sys.exit(1)
+            self.fatal_error("Error: No maildirs to process")
 
         self.rcfile_modified = False
         mtime_map = {}
@@ -503,6 +501,11 @@ class MaildirProcessor(object):
 
     def log_info(self, text):
         self.log(text, 1)
+
+    def fatal_error(self, text):
+        self.log_error(text)
+        sys.stderr.write("%s\n" % text)
+        sys.exit(1)
 
     # ----------------------------------------------------------------
     # Interface used by MailBase and descendants:
@@ -693,8 +696,7 @@ def main(argv):
             try:
                 fp = open(rcfile)
             except IOError, e:
-                processor.log_error("Error: Could not open RC file: %s" % e)
-                sys.exit(1)
+                processor.fatal_error("Error: Could not open RC file: %s" % e)
             else:
                 exec fp in environment
                 if not processor.rcfile_modified:

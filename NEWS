@@ -1,3 +1,13 @@
+Version 0.3 (2008-02-23)
+
+  - The maildir base directory now defaults to the current working
+    directory.
+  - Improved error handling for missing configuration file.
+  - Improved error handling for badly encoded mail headers.
+  - Made the program exit with an error code and print an error
+    message to stderr when a fatal error has occurred.
+  - Minor improvements of the documentation.
+
 Version 0.2 (2007-07-10)
 
   - Added feature that (if enabled) reloads the rc file when it has

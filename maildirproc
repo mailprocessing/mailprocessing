@@ -563,7 +563,7 @@ def main(argv):
         os.mkdir(os.path.expanduser(maildirproc_directory))
 
     parser = OptionParser(
-        version="0.2",
+        version="0.3",
         description=(
             "maildirproc is a program that scans a number of maildir mail"
             " boxes and processes found mail as defined by an rc file. See"

@@ -14,6 +14,7 @@ maildirproc-$(VERSION).tar.gz: $(DIST_FILES) $(EXAMPLE_FILES)
 	mkdir maildirproc-$(VERSION)
 	cp -r $(DIST_FILES) maildirproc-$(VERSION)
 	find maildirproc-$(VERSION) -name .svn | xargs rm -rf
+	find . -name '*~' | xargs rm -f
 	tar czf $@ maildirproc-$(VERSION)
 	rm -rf maildirproc-$(VERSION)
 

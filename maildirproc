@@ -2,17 +2,17 @@
 # -*- coding: utf-8 -*-
 
 # Copyright (C) 2006 Joel Rosdahl <joel@rosdahl.net>
-# 
+#
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
 # of the License, or (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful, but
 # WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
 # General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA
@@ -159,21 +159,21 @@ class MailBase(object):
         if self._parse_mail():
             self._log_processing()
 
-    def get_maildir(self):
+    @property
+    def maildir(self):
         return self._maildir
-    maildir = property(get_maildir)
 
-    def get_path(self):
+    @property
+    def path(self):
         return self._path
-    path = property(get_path)
 
-    def get_processor(self):
+    @property
+    def processor(self):
         return self._processor
-    processor = property(get_processor)
 
-    def get_target(self):
+    @property
+    def target(self):
         return self._target
-    target = property(get_target)
 
     def __getitem__(self, header_name):
         return MailHeader(
@@ -436,9 +436,9 @@ class MaildirProcessor(object):
         self._maildirs = maildirs
     maildirs = property(get_maildirs, set_maildirs)
 
-    def get_rcfile(self):
+    @property
+    def rcfile(self):
         return self._rcfile
-    rcfile = property(get_rcfile)
 
     def get_sendmail(self):
         return self._sendmail

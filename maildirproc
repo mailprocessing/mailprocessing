@@ -32,10 +32,10 @@ delivered mail. That's a feature, not a bug.
 """
 
 
+import hashlib
 import os
 import random
 import re
-import sha
 import shutil
 import socket
 import subprocess
@@ -70,7 +70,7 @@ def iso_8601_now():
 
 
 def sha1sum(fp):
-    sha_obj = sha.new()
+    sha_obj = hashlib.sha1()
     while True:
         data = fp.read(4096)
         if not data:

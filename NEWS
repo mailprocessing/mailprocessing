@@ -1,3 +1,8 @@
+Version 0.4 (2008-12-18)
+
+  - Added support for Python 3.0.
+  - Dropped support for Python 2.4.
+
 Version 0.3 (2008-02-23)
 
   - The maildir base directory now defaults to the current working

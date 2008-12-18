@@ -1,0 +1,6 @@
+include LICENSE
+include NEWS
+include README
+include maildirproc
+include setup.py
+recursive-include doc *.html *.css *.rc

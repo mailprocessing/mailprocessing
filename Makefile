@@ -19,7 +19,7 @@ maildirproc-$(VERSION).tar.gz: $(DIST_FILES) $(EXAMPLE_FILES)
 	rm -rf maildirproc-$(VERSION)
 
 clean:
-	rm -rf maildirproc-$(VERSION)
+	rm -rf maildirproc-$(VERSION) build dist MANIFEST
 	find . -name '*~' | xargs rm -f
 
 .PHONY: all clean

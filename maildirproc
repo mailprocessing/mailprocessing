@@ -41,9 +41,9 @@ import socket
 import subprocess
 import sys
 import time
-from email import Errors as email_errors
-from email import Header as email_header
-from email import Parser as email_parser
+from email import errors as email_errors
+from email import header as email_header
+from email import parser as email_parser
 from optparse import OptionParser
 
 

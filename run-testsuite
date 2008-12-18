@@ -22,7 +22,7 @@ class TestFixture(TestCase):
         "X-Mailing-List: Charlie\n",
         "Mailing-List: Delta\n",
         "\n",
-        "Body.\n",
+        "Body. R\xc3\xa4vsm\xc3\xb6rg\xc3\xa5s.\n",
         ]
     _testmail_data_bad_header = [
         "From: Sender <sender@example.com>\n",

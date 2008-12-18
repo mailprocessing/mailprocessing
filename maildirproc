@@ -199,7 +199,7 @@ class MailBase(object):
         self._processor.log("New mail detected at %s:" % iso_8601_now())
         self._processor.log("Path:       %r" % self.path)
         try:
-            fp = open(self.path)
+            fp = open(self.path, "rb")
         except IOError, e:
             # The file was probably (re)moved by some other process.
             self._processor.log_mail_opening_error(self.path, e)
@@ -294,7 +294,7 @@ class Mail(MailBase):
 
     def _copy(self, maildir):
         try:
-            source_fp = open(self.path)
+            source_fp = open(self.path, "rb")
         except IOError, e:
             # The file was probably (re)moved by some other process.
             self._processor.log_mail_opening_error(self.path, e)
@@ -308,7 +308,7 @@ class Mail(MailBase):
         try:
             tmp_target_fp = os.fdopen(
                 os.open(tmp_target, os.O_WRONLY | os.O_CREAT | os.O_EXCL),
-                "w")
+                "wb")
         except IOError, e:
             self._processor.log_io_error(
                 "Could not open %s for writing" % tmp_target,
@@ -359,7 +359,7 @@ class Mail(MailBase):
             copy = " copy"
         self._processor.log("==> Forwarding%s to %r" % (copy, addresses))
         try:
-            source_fp = open(self.path)
+            source_fp = open(self.path, "rb")
         except IOError, e:
             # The file was probably moved.
             self._processor.log_mail_opening_error(self.path, e)

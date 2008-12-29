@@ -108,8 +108,7 @@ class MailHeader(object):
         else:
             result_text = "does not match"
         self._mail.processor.log_debug(
-            "... Header \"%s\" %s match %r" % (
-                self._name, result_text, regexp))
+            "... Header \"%s\" %s %r" % (self._name, result_text, regexp))
         return result
 
 
@@ -136,7 +135,7 @@ class MailTarget(object):
         else:
             result_text = "does not match"
         self._mail.processor.log_debug(
-            "... Target %s match %r" % (result_text, regexp))
+            "... Target %s %r" % (result_text, regexp))
         return result
 
     # ----------------------------------------------------------------

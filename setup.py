@@ -12,7 +12,6 @@ VERSION = "0.4"
 setup(
     name="maildirproc",
     version=VERSION,
-    description="2to3 distutils test package",
     author="Joel Rosdahl",
     author_email="joel@rosdahl.net",
     license="GNU GPL",

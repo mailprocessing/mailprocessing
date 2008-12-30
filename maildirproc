@@ -690,17 +690,17 @@ def main(argv):
 
     if rcfile == u"-":
         processor.log(u"RC file: <standard input>")
-        fp = sys.stdin
-        exec fp in environment
+        rc = sys.stdin.read()
+        exec rc in environment
     else:
         processor.log(u"RC file: %r" % rcfile)
         while True:
             try:
-                fp = open(rcfile)
+                rc = open(rcfile).read()
             except IOError, e:
                 processor.fatal_error(u"Error: Could not open RC file: %s" % e)
             else:
-                exec fp in environment
+                exec rc in environment
                 if not processor.rcfile_modified:
                     # Normal exit.
                     break

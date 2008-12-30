@@ -444,7 +444,10 @@ class MaildirProcessor(object):
 
     def set_logfile(self, path_or_fp):
         if isinstance(path_or_fp, basestring):
-            self._log_fp = open(os.path.expanduser(path_or_fp), u"a")
+            self._log_fp = unicode_open(
+                os.path.expanduser(path_or_fp),
+                u"a",
+                errors=u"backslashreplace")
         else:
             self._log_fp = path_or_fp
     logfile = property(fset=set_logfile)
@@ -686,9 +689,19 @@ def main(argv):
         options.once = True
 
     if options.logfile == u"-":
-        log_fp = sys.stdout
+        if sys.stdout.encoding is None:
+            # Python 2.x and stdout redirected to a file.
+            import codecs
+            import locale
+            encoding = locale.getpreferredencoding()
+            log_fp = codecs.getwriter(encoding)(sys.stdout)
+        else:
+            log_fp = sys.stdout
     else:
-        log_fp = open(os.path.expanduser(options.logfile), u"a")
+        log_fp = unicode_open(
+            os.path.expanduser(options.logfile),
+            u"a",
+            errors=u"backslashreplace")
 
     log_level = options.log_level + options.verbosity
 

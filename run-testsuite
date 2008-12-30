@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import os
 import shutil
@@ -16,7 +17,7 @@ class TestFixture(TestCase):
         "From: Sender <sender@example.com>\n",
         "To: Recipient <recipient@example.com>\n",
         "Cc: Carbon Copy <carbon.copy@example.com>\n",
-        "Subject: A subject\n",
+        "Subject: A subject with =?utf8?b?csOkdnNtw7ZyZ8Olcw==?=\n",
         "Delivered-To: Alpha\n",
         "X-BeenThere: Bravo\n",
         "X-Mailing-List: Charlie\n",
@@ -248,7 +249,31 @@ class TestMailAttributes(TestFixture):
         self.verify_result({"dest/new": 1})
 
 
-class TestBadHeader(TestFixture):
+class TestHeaders(TestFixture):
+    def test_ascii_header(self):
+        rc = '''
+            for mail in processor:
+                if str(mail["From"]) == "Sender <sender@example.com>":
+                    mail.move("dest")
+            '''
+
+        self.makedirs(["incoming", "dest"])
+        self.create("a", "incoming/new/a")
+        self.run_mdp(rc, ["incoming"])
+        self.verify_result({"dest/new": 1})
+
+    def test_utf8_header(self):
+        rc = '''
+            for mail in processor:
+                if str(mail["Subject"]) == "A subject with r\\xc3\\xa4vsm\\xc3\\xb6rg\\xc3\\xa5s":
+                    mail.move("dest")
+            '''
+
+        self.makedirs(["incoming", "dest"])
+        self.create("a", "incoming/new/a")
+        self.run_mdp(rc, ["incoming"])
+        self.verify_result({"dest/new": 1})
+
     def test_bad_header(self):
         rc = '''
             for mail in processor:

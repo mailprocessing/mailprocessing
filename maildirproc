@@ -51,6 +51,12 @@ if sys.version_info[0] >= 3:
 else:
     import codecs
     unicode_open = codecs.open
+    def ascii(x):
+        r = repr(x)
+        if r.startswith("u"):
+            return r[1:]
+        else:
+            return r
 
 
 def offset_to_timezone(offset):
@@ -111,7 +117,8 @@ class MailHeader(object):
         else:
             result_text = u"does not contain"
         self._mail.processor.log_debug(
-            u"... Header \"%s\" %s %r" % (self._name, result_text, string))
+            u"... Header \"%s\" %s %s" % (
+               self._name, result_text, ascii(string)))
         return result
 
     def matches(self, regexp):
@@ -122,7 +129,8 @@ class MailHeader(object):
         else:
             result_text = u"does not match"
         self._mail.processor.log_debug(
-            u"... Header \"%s\" %s %r" % (self._name, result_text, regexp))
+            u"... Header \"%s\" %s %s" % (
+                self._name, result_text, ascii(regexp)))
         return result
 
 
@@ -139,7 +147,7 @@ class MailTarget(object):
         else:
             result_text = u"does not contain"
         self._mail.processor.log_debug(
-            u"... Target %s %r" % (result_text, string))
+            u"... Target %s %s" % (result_text, ascii(string)))
         return result
 
     def matches(self, regexp):
@@ -149,7 +157,7 @@ class MailTarget(object):
         else:
             result_text = u"does not match"
         self._mail.processor.log_debug(
-            u"... Target %s %r" % (result_text, regexp))
+            u"... Target %s %s" % (result_text, ascii(regexp)))
         return result
 
     # ----------------------------------------------------------------
@@ -210,20 +218,20 @@ class MailBase(object):
     def _log_processing(self):
         self._processor.log(u"")
         self._processor.log(u"New mail detected at %s:" % iso_8601_now())
-        self._processor.log(u"Path:       %r" % self.path)
+        self._processor.log(u"Path:       %s" % ascii(self.path))
         try:
             fp = open(self.path, u"rb")
         except IOError, e:
             # The file was probably (re)moved by some other process.
             self._processor.log_mail_opening_error(self.path, e)
             return
-        self._processor.log(u"SHA1:       %r" % sha1sum(fp))
-        self._processor.log(u"Message-ID: %r" % self[u"Message-ID"])
-        self._processor.log(u"Subject:    %r" % self[u"Subject"])
-        self._processor.log(u"Date:       %r" % self[u"Date"])
-        self._processor.log(u"From:       %r" % self[u"From"])
-        self._processor.log(u"To:         %r" % self[u"To"])
-        self._processor.log(u"Cc:         %r" % self[u"Cc"])
+        self._processor.log(u"SHA1:       %s" % ascii(sha1sum(fp)))
+        self._processor.log(u"Message-ID: %s" % ascii(self[u"Message-ID"]))
+        self._processor.log(u"Subject:    %s" % ascii(self[u"Subject"]))
+        self._processor.log(u"Date:       %s" % ascii(self[u"Date"]))
+        self._processor.log(u"From:       %s" % ascii(self[u"From"]))
+        self._processor.log(u"To:         %s" % ascii(self[u"To"]))
+        self._processor.log(u"Cc:         %s" % ascii(self[u"Cc"]))
 
     def _parse_mail(self):
         # We'll just use some encoding that handles all byte values
@@ -254,7 +262,7 @@ class MailBase(object):
                         value_parts.append(s)
                 except (email_errors.HeaderParseError, ValueError):
                     self._processor.log_error(
-                        u"Error: Could not decode header %r" % header)
+                        u"Error: Could not decode header %s" % ascii(header))
                     value_parts.append(header.encode().decode("ascii"))
             self._headers[name.lower()] = u" ".join(value_parts)
         return True
@@ -689,19 +697,9 @@ def main(argv):
         options.once = True
 
     if options.logfile == u"-":
-        if sys.stdout.encoding is None:
-            # Python 2.x and stdout redirected to a file.
-            import codecs
-            import locale
-            encoding = locale.getpreferredencoding()
-            log_fp = codecs.getwriter(encoding)(sys.stdout)
-        else:
-            log_fp = sys.stdout
+        log_fp = sys.stdout
     else:
-        log_fp = unicode_open(
-            os.path.expanduser(options.logfile),
-            u"a",
-            errors=u"backslashreplace")
+        log_fp = open(os.path.expanduser(options.logfile), u"a")
 
     log_level = options.log_level + options.verbosity
 
@@ -727,7 +725,7 @@ def main(argv):
         rc = sys.stdin.read()
         exec(rc, environment)
     else:
-        processor.log(u"RC file: %r" % rcfile)
+        processor.log(u"RC file: %s" % ascii(rcfile))
         while True:
             try:
                 rc = open(rcfile).read()

@@ -46,6 +46,12 @@ from email import header as email_header
 from email import parser as email_parser
 from optparse import OptionParser
 
+if sys.version_info[0] >= 3:
+    unicode_open = open
+else:
+    import codecs
+    unicode_open = codecs.open
+
 
 def offset_to_timezone(offset):
     if offset <= 0:
@@ -216,8 +222,14 @@ class MailBase(object):
         self._processor.log(u"Cc:         %r" % self[u"Cc"])
 
     def _parse_mail(self):
+        # We'll just use some encoding that handles all byte values
+        # without bailing out. Non-ASCII characters should not exist
+        # in the headers according to email standards, but if they do
+        # anyway, we mustn't crash.
+        encoding = "iso-8859-1"
+
         try:
-            fp = open(self.path)
+            fp = unicode_open(self.path, encoding=encoding)
         except IOError, e:
             # The file was probably (re)moved by some other process.
             self._processor.log_mail_opening_error(self.path, e)

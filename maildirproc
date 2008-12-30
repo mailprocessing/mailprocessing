@@ -703,7 +703,7 @@ def main(argv):
     if rcfile == u"-":
         processor.log(u"RC file: <standard input>")
         rc = sys.stdin.read()
-        exec rc in environment
+        exec(rc, environment)
     else:
         processor.log(u"RC file: %r" % rcfile)
         while True:
@@ -712,7 +712,7 @@ def main(argv):
             except IOError, e:
                 processor.fatal_error(u"Error: Could not open RC file: %s" % e)
             else:
-                exec rc in environment
+                exec(rc, environment)
                 if not processor.rcfile_modified:
                     # Normal exit.
                     break

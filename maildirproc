@@ -244,9 +244,14 @@ class MailBase(object):
             value_parts = []
             for header in headers.get_all(name, []):
                 try:
-                    parts = email_header.decode_header(header)
-                    decoded_parts = [s.decode(c or u"ascii") for (s, c) in parts]
-                    value_parts += decoded_parts
+                    for (s, c) in email_header.decode_header(header):
+                        # email.header.decode_header in Python 3.0 may
+                        # return either [(str, None)] or [(bytes,
+                        # None), ..., (bytes, encoding)]. We must
+                        # compensate for this.
+                        if not isinstance(s, unicode):
+                            s = s.decode(c if c else u"ascii")
+                        value_parts.append(s)
                 except (email_errors.HeaderParseError, ValueError):
                     self._processor.log_error(
                         u"Error: Could not decode header %r" % header)

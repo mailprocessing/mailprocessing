@@ -4,9 +4,17 @@
 import os
 import shutil
 import subprocess
+import sys
 import textwrap
 from os.path import join as joinpath
 from unittest import TestCase, main
+
+######################################################################
+
+use_python2 = ' u"' in open("maildirproc").read()
+
+def fix_u(script):
+    return script.replace("__u__", "u" if use_python2 else "")
 
 ######################################################################
 
@@ -60,7 +68,7 @@ class TestFixture(TestCase):
             extra_argv = ["-b", self._maildir_dir]
         else:
             extra_argv = ["-b", maildir_base]
-        if ' u"' in open("maildirproc").read():
+        if use_python2:
             # Python 2.x.
             argv = ["./maildirproc"]
         else:
@@ -267,11 +275,11 @@ class TestHeaders(TestFixture):
         self.verify_result({"dest/new": 1})
 
     def test_utf8_header(self):
-        rc = '''
+        rc = fix_u('''
             for mail in processor:
-                if mail["Subject"] == u"A subject with r\\xe4vsm\\xf6rg\\xe5s":
+                if mail["Subject"] == __u__"A subject with r\\xe4vsm\\xf6rg\\xe5s":
                     mail.move("dest")
-            '''
+            ''')
 
         self.makedirs(["incoming", "dest"])
         self.create("a", "incoming/new/a")
@@ -279,11 +287,11 @@ class TestHeaders(TestFixture):
         self.verify_result({"dest/new": 1})
 
     def test_bad_header(self):
-        rc = '''
+        rc = fix_u('''
             for mail in processor:
-                if mail["subject"] == u"=?ISO-2022-JP?B?gYqBiQ=?=":
+                if mail["subject"] == __u__"=?ISO-2022-JP?B?gYqBiQ=?=":
                     mail.move("dest")
-            '''
+            ''')
 
         self.makedirs(["incoming", "dest"])
         self.create("bad_header", "incoming/new/bad_header")

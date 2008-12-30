@@ -28,7 +28,7 @@ sorting -- i.e., moving, copying, forwarding and deleting mail
 according to a set of rules. It can be seen as an alternative to
 procmail, but instead of being a delivery agent (which wants to be
 part of the delivery chain), maildirproc only processes already
-delivered mail. That's a feature, not a bug.
+delivered mail. And that's a feature, not a bug.
 """
 
 

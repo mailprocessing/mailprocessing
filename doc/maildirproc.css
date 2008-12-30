@@ -1,6 +1,6 @@
 body {
     color: #000000;
-    background-color: #ebe5d8;
+    background-color: #f7f2e1;
     margin: 1em;
 }
 
@@ -12,13 +12,32 @@ li {
     margin-bottom: 0.5em;
 }
 
-h1, h2, h3 {
+h1
+{
+    font-size: 1.7em;
+    background-color: #ddc796;
+    border-bottom: 4px solid #af8e45;
+    margin: 0 0 1em 0;
+    padding-left: 0.3em;
+}
+
+h2
+{
+    font-size: 1.3em;
+    background-color: #ede1c9;
+    border-bottom: 2px solid #af8e45;
+    margin: 0.5em 0 0 0;
+    padding-left: 0.3em;
+}
+
+h3 {
     border-style: solid;
     border-width: 0 0 1px 0;
 }
 
 dl {
-    border-left: 1px black solid;
+    background-color: #ede1c9;
+    border-left: 1px #af8e45 solid;
     margin-left: 1em;
     padding-left: 1em;
 }

@@ -87,15 +87,19 @@ def sha1sum(fp):
 
 class MailHeader(object):
     def __init__(self, mail, name, text):
+        assert isinstance(text, unicode)
         self._mail = mail
         self._name = name
         self._text = text
 
-    def __unicode__(self):
-        return self._text
+    def __eq__(self, x):
+        return self._text == x
+
+    def __ne__(self, x):
+        return not (self._text == x)
 
     def __str__(self):
-        raise NotImplementedError
+        return self._text
 
     def __repr__(self):
         return repr(self._text)
@@ -246,7 +250,7 @@ class MailBase(object):
                 except (email_errors.HeaderParseError, ValueError):
                     self._processor.log_error(
                         u"Error: Could not decode header %r" % header)
-                    value_parts.append(header.encode())
+                    value_parts.append(header.encode().decode("ascii"))
             self._headers[name.lower()] = u" ".join(value_parts)
         return True
 

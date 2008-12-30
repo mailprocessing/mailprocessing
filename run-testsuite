@@ -257,7 +257,7 @@ class TestHeaders(TestFixture):
     def test_ascii_header(self):
         rc = '''
             for mail in processor:
-                if unicode(mail["From"]) == "Sender <sender@example.com>":
+                if mail["From"] == "Sender <sender@example.com>":
                     mail.move("dest")
             '''
 
@@ -269,7 +269,7 @@ class TestHeaders(TestFixture):
     def test_utf8_header(self):
         rc = '''
             for mail in processor:
-                if unicode(mail["Subject"]) == u"A subject with r\\xe4vsm\\xf6rg\\xe5s":
+                if mail["Subject"] == u"A subject with r\\xe4vsm\\xf6rg\\xe5s":
                     mail.move("dest")
             '''
 
@@ -281,7 +281,7 @@ class TestHeaders(TestFixture):
     def test_bad_header(self):
         rc = '''
             for mail in processor:
-                if unicode(mail["subject"]) == u"=?ISO-2022-JP?B?gYqBiQ=?=":
+                if mail["subject"] == u"=?ISO-2022-JP?B?gYqBiQ=?=":
                     mail.move("dest")
             '''
 

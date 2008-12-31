@@ -33,6 +33,7 @@ delivered mail. And that's a feature, not a bug.
 
 
 import hashlib
+import locale
 import os
 import random
 import re
@@ -57,6 +58,13 @@ else:
             return r[1:]
         else:
             return r
+
+
+def get_file_encoding(f):
+    if hasattr(f, "encoding") and f.encoding:
+        return f.encoding
+    else:
+        return locale.getpreferredencoding()
 
 
 def offset_to_timezone(offset):
@@ -697,9 +705,13 @@ def main(argv):
         options.once = True
 
     if options.logfile == u"-":
-        log_fp = sys.stdout
+        log_fp = codecs.getwriter(get_file_encoding(sys.stdout))(sys.stdout)
     else:
-        log_fp = open(os.path.expanduser(options.logfile), u"a")
+        log_fp = unicode_open(
+            os.path.expanduser(options.logfile),
+            u"a",
+            encoding=locale.getpreferredencoding(),
+            errors=u"backslashreplace")
 
     log_level = options.log_level + options.verbosity
 

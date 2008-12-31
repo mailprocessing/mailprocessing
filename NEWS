@@ -1,6 +1,7 @@
 Version 0.4.1 (2008-12-31)
 
-  - Handle erroneously encoded headers correctly.
+  - Improved robustness for erroneously encoded headers.
+  - Made it possible to log non-ASCII characters from the RC file.
 
 Version 0.4 (2008-12-30)
 

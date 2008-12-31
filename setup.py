@@ -7,7 +7,7 @@ try:
 except ImportError:
     from distutils.command.build_scripts import build_scripts
 
-VERSION = "0.4"
+VERSION = "0.4.1"
 
 setup(
     name="maildirproc",

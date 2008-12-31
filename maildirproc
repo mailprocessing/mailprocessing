@@ -216,9 +216,6 @@ class MailBase(object):
     # ----------------------------------------------------------------
 
     def _log_processing(self):
-        self._processor.log(u"")
-        self._processor.log(u"New mail detected at %s:" % iso_8601_now())
-        self._processor.log(u"Path:       %s" % ascii(self.path))
         try:
             fp = open(self.path, u"rb")
         except IOError, e:
@@ -240,6 +237,9 @@ class MailBase(object):
         # anyway, we mustn't crash.
         encoding = "iso-8859-1"
 
+        self._processor.log(u"")
+        self._processor.log(u"New mail detected at %s:" % iso_8601_now())
+        self._processor.log(u"Path:       %s" % ascii(self.path))
         try:
             fp = unicode_open(self.path, encoding=encoding)
         except IOError, e:

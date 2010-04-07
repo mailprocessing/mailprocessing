@@ -32,6 +32,7 @@ delivered mail. And that's a feature, not a bug.
 """
 
 
+import codecs
 import hashlib
 import locale
 import os
@@ -50,7 +51,6 @@ from optparse import OptionParser
 if sys.version_info[0] >= 3:
     unicode_open = open
 else:
-    import codecs
     unicode_open = codecs.open
     def ascii(x):
         r = repr(x)

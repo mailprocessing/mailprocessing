@@ -1,6 +1,6 @@
 VERSION = $(shell ./maildirproc --version)
 
-all: maildirproc-$(VERSION).tar.gz
+all: maildirproc-$(VERSION).tar.gz maildirproc-python3
 
 DIST_FILES = \
     LICENSE \
@@ -18,8 +18,14 @@ maildirproc-$(VERSION).tar.gz: $(DIST_FILES) $(EXAMPLE_FILES)
 	tar czf $@ maildirproc-$(VERSION)
 	rm -rf maildirproc-$(VERSION)
 
+maildirproc-python3:
+	cp maildirproc $@.tmp
+	2to3 --no-diffs -w $@.tmp
+	sed -i '1s/python/python3/' $@.tmp
+	mv $@.tmp $@
+
 clean:
-	rm -rf maildirproc-$(VERSION) build dist MANIFEST
+	rm -rf maildirproc-$(VERSION) build dist MANIFEST maildirproc-python3
 	find . -name '*~' | xargs rm -f
 
 .PHONY: all clean

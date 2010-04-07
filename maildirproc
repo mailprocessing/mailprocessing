@@ -48,9 +48,16 @@ from email import header as email_header
 from email import parser as email_parser
 from optparse import OptionParser
 
+
 if sys.version_info[0] >= 3:
     unicode_open = open
 else:
+    def get_file_encoding(f):
+        if hasattr(f, "encoding") and f.encoding:
+            return f.encoding
+        else:
+            return locale.getpreferredencoding()
+    sys.stdout = codecs.getwriter(get_file_encoding(sys.stdout))(sys.stdout)
     unicode_open = codecs.open
     def ascii(x):
         r = repr(x)
@@ -58,13 +65,6 @@ else:
             return r[1:]
         else:
             return r
-
-
-def get_file_encoding(f):
-    if hasattr(f, "encoding") and f.encoding:
-        return f.encoding
-    else:
-        return locale.getpreferredencoding()
 
 
 def offset_to_timezone(offset):
@@ -705,7 +705,7 @@ def main(argv):
         options.once = True
 
     if options.logfile == u"-":
-        log_fp = codecs.getwriter(get_file_encoding(sys.stdout))(sys.stdout)
+        log_fp = sys.stdout
     else:
         log_fp = unicode_open(
             os.path.expanduser(options.logfile),

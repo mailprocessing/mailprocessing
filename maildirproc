@@ -268,7 +268,8 @@ class MailBase(object):
                         if not isinstance(s, unicode):
                             s = s.decode(c if c else u"ascii")
                         value_parts.append(s)
-                except (email_errors.HeaderParseError, ValueError):
+                except (email_errors.HeaderParseError, LookupError,
+                        ValueError):
                     self._processor.log_error(
                         u"Error: Could not decode header %s" % ascii(header))
                     value_parts.append(header)

@@ -18,7 +18,7 @@ maildirproc-$(VERSION).tar.gz: $(DIST_FILES) $(EXAMPLE_FILES)
 	tar czf $@ maildirproc-$(VERSION)
 	rm -rf maildirproc-$(VERSION)
 
-maildirproc-python3:
+maildirproc-python3: maildirproc
 	cp maildirproc $@.tmp
 	2to3 --no-diffs -n -w $@.tmp
 	sed -i '1s/python/python3/' $@.tmp

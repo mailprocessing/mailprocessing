@@ -7,7 +7,7 @@ try:
 except ImportError:
     from distutils.command.build_scripts import build_scripts
 
-VERSION = "0.4.1"
+VERSION = "0.4.2"
 
 setup(
     name="maildirproc",
@@ -43,6 +43,7 @@ setup(
     "Programming Language :: Python :: 2.6",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.0",
+    "Programming Language :: Python :: 3.1",
     "Topic :: Communications :: Email",
     "Topic :: Communications :: Email :: Filters",
     ],

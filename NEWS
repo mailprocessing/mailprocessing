@@ -1,3 +1,9 @@
+Version 0.4.2 (2010-04-11)
+
+  - Improved robustness for erroneously encoded headers when running Python
+    3.x.
+  - Fixed problem with logging to stdout when running Python 3.x.
+
 Version 0.4.1 (2008-12-31)
 
   - Improved robustness for erroneously encoded headers.

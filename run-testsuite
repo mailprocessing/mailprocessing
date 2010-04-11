@@ -6,19 +6,11 @@ import shutil
 import subprocess
 import sys
 import textwrap
+import unittest
 from os.path import join as joinpath
-from unittest import TestCase, main
 
-######################################################################
 
-use_python2 = ' u"' in open("maildirproc").read()
-
-def fix_u(script):
-    return script.replace("__u__", "u" if use_python2 else "")
-
-######################################################################
-
-class TestFixture(TestCase):
+class TestFixture(unittest.TestCase):
     _maildir_dir = "test.maildir.%d" % os.getpid()
     _testdata_dir = "test.testdata.%d" % os.getpid()
     _testmail_data_a = [
@@ -68,12 +60,8 @@ class TestFixture(TestCase):
             extra_argv = ["-b", self._maildir_dir]
         else:
             extra_argv = ["-b", maildir_base]
-        if use_python2:
-            # Python 2.x.
-            argv = ["./maildirproc"]
-        else:
-            argv = ["/usr/local/bin/python3.0", "maildirproc"]
-        argv += [
+        argv = [
+            "./%s" % self._maildirproc_name,
             "--once",
             "-l", "/dev/null",
             "-r", "-",
@@ -106,7 +94,18 @@ class TestFixture(TestCase):
         self.assertEqual(result, actual)
 
 
-class TestBasics(TestFixture):
+class TestSuite(TestFixture):
+    def __init__(self, method_name, use_python2, maildirproc_name):
+        TestFixture.__init__(self, method_name)
+        self._use_python2 = use_python2
+        self._maildirproc_name = maildirproc_name
+
+    def fix_u(self, script):
+        return script.replace("__u__", "u" if self._use_python2 else "")
+
+    ###########################################################################
+    # Basics.
+
     def test_empty(self):
         rc = ""
 
@@ -246,9 +245,10 @@ class TestBasics(TestFixture):
         self.run_mdp(rc, ["incoming"])
         self.verify_result({"dest/new": 10})
 
+    ###########################################################################
+    # Mail attributes.
 
-class TestMailAttributes(TestFixture):
-    def test_path(self):
+    def test_mail_path(self):
         rc = '''
             for mail in processor:
                 if mail.path.endswith("incoming/new/a"):
@@ -260,8 +260,9 @@ class TestMailAttributes(TestFixture):
         self.run_mdp(rc, ["incoming"])
         self.verify_result({"dest/new": 1})
 
+    ###########################################################################
+    # Headers.
 
-class TestHeaders(TestFixture):
     def test_ascii_header(self):
         rc = '''
             for mail in processor:
@@ -275,7 +276,7 @@ class TestHeaders(TestFixture):
         self.verify_result({"dest/new": 1})
 
     def test_utf8_header(self):
-        rc = fix_u('''
+        rc = self.fix_u('''
             for mail in processor:
                 if mail["Subject"] == __u__"A subject with r\\xe4vsm\\xf6rg\\xe5s":
                     mail.move("dest")
@@ -287,7 +288,7 @@ class TestHeaders(TestFixture):
         self.verify_result({"dest/new": 1})
 
     def test_bad_header(self):
-        rc = fix_u('''
+        rc = self.fix_u('''
             for mail in processor:
                 if mail["subject"] == __u__"=?ISO-2022-JP?B?gYqBiQ=?=":
                     mail.move("dest")
@@ -298,8 +299,9 @@ class TestHeaders(TestFixture):
         self.run_mdp(rc, ["incoming"])
         self.verify_result({"dest/new": 1})
 
+    ###########################################################################
+    # Matchers.
 
-class TestHeaderMatches(TestFixture):
     def test_negative_header_matches(self):
         rc = '''
             for mail in processor:
@@ -324,8 +326,6 @@ class TestHeaderMatches(TestFixture):
         self.run_mdp(rc, ["incoming"])
         self.verify_result({"dest/new": 1})
 
-
-class TestHeaderContains(TestFixture):
     def test_negative_header_contains(self):
         rc = '''
             for mail in processor:
@@ -350,8 +350,6 @@ class TestHeaderContains(TestFixture):
         self.run_mdp(rc, ["incoming"])
         self.verify_result({"dest/new": 1})
 
-
-class TestTargetContains(TestFixture):
     def test_target_contains(self):
         rc = '''
             for mail in processor:
@@ -366,8 +364,6 @@ class TestTargetContains(TestFixture):
         self.run_mdp(rc, ["incoming"])
         self.verify_result({"dest/new": 2})
 
-
-class TestTargetMatches(TestFixture):
     def test_target_matches(self):
         rc = '''
             for mail in processor:
@@ -382,8 +378,6 @@ class TestTargetMatches(TestFixture):
         self.run_mdp(rc, ["incoming"])
         self.verify_result({"dest/new": 2})
 
-
-class TestFromMailingList(TestFixture):
     def test_from_mailing_list(self):
         rc = '''
             for mail in processor:
@@ -414,7 +408,29 @@ class TestFromMailingList(TestFixture):
             "mailing-list/new": 1,
             })
 
+
+class Python2TestSuite(TestSuite):
+    def __init__(self, method_name):
+        TestSuite.__init__(self, method_name, True, "maildirproc")
+
+
+class Python3TestSuite(TestSuite):
+    def __init__(self, method_name):
+        TestSuite.__init__(self, method_name, False, "maildirproc-python3")
+
 ######################################################################
 
-if __name__ == "__main__":
-    main()
+test_runner = unittest.TextTestRunner()
+test_loader = unittest.defaultTestLoader
+test_suite = unittest.TestSuite()
+tests = [Python2TestSuite, Python3TestSuite]
+args = sys.argv[1:]
+if args:
+    for arg in args:
+        for test in tests:
+            test_suite.addTest(test(arg))
+else:
+    for test in tests:
+        test_suite.addTests(test_loader.loadTestsFromTestCase(test))
+result = test_runner.run(test_suite)
+sys.exit(0 if result.wasSuccessful() else 1)

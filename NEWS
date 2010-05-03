@@ -1,3 +1,8 @@
+Version 0.4.3 (2010-05-03)
+
+  - Logs are now printed to the log file in a safe way even if the log string
+    doesn't fit within the destination character set.
+
 Version 0.4.2 (2010-04-11)
 
   - Improved robustness for erroneously encoded headers when running Python

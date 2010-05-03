@@ -99,6 +99,14 @@ def sha1sum(fp):
     return sha_obj.hexdigest()
 
 
+def safe_write(fp, s):
+    line = u"%s\n" % s
+    try:
+        fp.write(line)
+    except UnicodeEncodeError:
+        fp.write(ascii(line))
+
+
 class MailHeader(object):
     def __init__(self, mail, name, text):
         assert isinstance(text, unicode)
@@ -532,7 +540,7 @@ class MaildirProcessor(object):
 
     def log(self, text, level=1):
         if level <= self._log_level:
-            self._log_fp.write(u"%s\n" % text)
+            safe_write(self._log_fp, text)
             self._log_fp.flush()
 
     def log_debug(self, text):
@@ -546,7 +554,7 @@ class MaildirProcessor(object):
 
     def fatal_error(self, text):
         self.log_error(text)
-        sys.stderr.write(u"%s\n" % text)
+        safe_write(sys.stderr, text)
         sys.exit(1)
 
     # ----------------------------------------------------------------

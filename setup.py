@@ -19,8 +19,8 @@ setup(
     platforms="platform-independent",
     cmdclass={"build_scripts": build_scripts},
     url="http://joel.rosdahl.net/maildirproc/",
-    download_url=("http://joel.rosdahl.net/maildirproc/maildirproc-%s.tar.gz" %
-                  VERSION),
+    download_url=("http://joel.rosdahl.net/maildirproc/releases/"
+                  "maildirproc-%s.tar.gz" % VERSION),
     description="maildir processor using Python as its configuration language",
     long_description="""maildirproc is a program that processes one or
     several existing mail boxes in the maildir format. It is primarily

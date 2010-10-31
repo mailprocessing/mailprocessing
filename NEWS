@@ -1,7 +1,7 @@
-Unreleased
+Version 0.5.0 (2010-10-31)
 
-  - maildirproc is now a Python 3.x project. Use maildirproc-python2 for Python
-    2.x compatibilty.
+  - maildirproc is now a Python 3.x project. Install maildirproc-python2 for
+    Python 2.x compatibility.
 
 Version 0.4.3 (2010-05-03)
 

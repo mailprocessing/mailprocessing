@@ -29,10 +29,11 @@ def bogofilter(mail):
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT)
     (output, _) = p.communicate()
-    processor.log("*** Bogofilter result: %r" % output.rstrip())
+    processor.log("*** Bogofilter result: {0!r}".format(output.rstrip()))
     if p.returncode not in [0, 1, 2]:
         processor.log_error(
-            "Error running bogofilter: Return code = %d" % p.returncode)
+            "Error running bogofilter: Return code = {0!r}".format(
+                p.returncode))
     return p.returncode
 
 # --------------------------------------------------------------------

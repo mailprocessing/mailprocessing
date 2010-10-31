@@ -49,7 +49,7 @@ def autolearn_and_check_spam(mail):
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT)
     (output, _) = p.communicate()
-    processor.log("*** Bogofilter result: %r" % output.rstrip())
+    processor.log("*** Bogofilter result: {0!r}".format(output.rstrip()))
     if p.returncode == 0:
         # Spam.
         return True
@@ -61,7 +61,7 @@ def autolearn_and_check_spam(mail):
         return False
     else:
         processor.log_error(
-            "Error running bogofilter: Return code = %d" % p.returncode)
+            "Error running bogofilter: Return code = {0}".format(p.returncode))
         return False
 
 def register_ham(mail):
@@ -108,32 +108,32 @@ def handle_incoming_unsorted(mail):
         # ...
         ]:
         if mail.from_mailing_list(listname):
-            processor.log("... Mailing list %r" % listname)
+            processor.log("... Mailing list {0!r}".format(listname))
             mail.move(boxname)
             return
 
     # Mail to specific addresses.
     for (boxname, address_re) in [
         # ...
-        (".mail.kofoto-list-owner",
-         "kofoto-.*-owner@kofoto\\.rosdahl\\.net"),
+        (r"\.mail\.kofoto-list-owner",
+         r"kofoto-.*-owner@kofoto\.rosdahl\.net"),
         # ...
         ]:
         if mail.target.matches(address_re):
-            processor.log("... Mail to %r" % address_re)
+            processor.log("... Mail to {0!r}".format(address_re))
             mail.move(boxname)
             return
 
     # Mail from specific addresses.
     for (boxname, address_re) in [
         # ...
-        (".mail.sourceforge",
-         "(noreply|jrosdahl)@sourceforge\\.net|"
-         "joel\\+sourceforge@rosdahl\\.net"),
+        (r"\.mail\.sourceforge",
+         r"(noreply|jrosdahl)@sourceforge\.net|"
+         r"joel\+sourceforge@rosdahl\.net"),
         # ...
         ]:
         if mail["from"].matches(address_re):
-            processor.log("... Mail from %r" % address_re)
+            processor.log("... Mail from {0!r}".format(address_re))
             mail.move(boxname)
             return
 
@@ -146,13 +146,13 @@ def handle_incoming_unsorted(mail):
         return
 
     # Private Debian mail.
-    if mail.target.matches("joel@.*debian\\.org|.*@packages\\.debian\\.org"):
+    if mail.target.matches(r"joel@.*debian\.org|.*@packages\.debian\.org"):
         processor.log("... Private Debian mail")
         mail.move(".mail.debian")
         return
 
     # Other private mail.
-    if mail.target.matches("joel@(rosdahl\\.net|lysator\\.liu\\.se)"):
+    if mail.target.matches(r"joel@(rosdahl\.net|lysator\.liu\.se)"):
         processor.log("... Other private mail")
         mail.move(".mail.private")
         return

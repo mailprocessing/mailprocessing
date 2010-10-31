@@ -411,12 +411,12 @@ class TestSuite(TestFixture):
 
 class Python2TestSuite(TestSuite):
     def __init__(self, method_name):
-        TestSuite.__init__(self, method_name, True, "maildirproc")
+        TestSuite.__init__(self, method_name, True, "maildirproc-python2")
 
 
 class Python3TestSuite(TestSuite):
     def __init__(self, method_name):
-        TestSuite.__init__(self, method_name, False, "maildirproc-python3")
+        TestSuite.__init__(self, method_name, False, "maildirproc")
 
 ######################################################################
 

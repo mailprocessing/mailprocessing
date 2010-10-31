@@ -1,3 +1,8 @@
+Unreleased
+
+  - maildirproc is now a Python 3.x project. Use maildirproc-python2 for Python
+    2.x compatibilty.
+
 Version 0.4.3 (2010-05-03)
 
   - Logs are now printed to the log file in a safe way even if the log string

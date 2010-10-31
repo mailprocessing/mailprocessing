@@ -1,27 +1,20 @@
-#! /usr/bin/env python
+#! /usr/bin/env %PY_BIN%
+# -*-python-*-
 
 from distutils.core import setup
 
-try:
-    from distutils.command.build_scripts import build_scripts_2to3 as build_scripts
-except ImportError:
-    from distutils.command.build_scripts import build_scripts
-
-VERSION = "0.4.3"
-
 setup(
     name="maildirproc",
-    version=VERSION,
+    version="%MDP_VER%",
     author="Joel Rosdahl",
     author_email="joel@rosdahl.net",
-    license="GNU GPL",
+    license="GNU GPL 2.0",
     scripts=["maildirproc"],
     platforms="platform-independent",
-    cmdclass={"build_scripts": build_scripts},
     url="http://joel.rosdahl.net/maildirproc/",
     download_url=("http://joel.rosdahl.net/maildirproc/releases/"
-                  "maildirproc-%s.tar.gz" % VERSION),
-    description="maildir processor using Python as its configuration language",
+                  "%MDP_NAME%-%MDP_VER%.tar.gz"),
+    description="maildir processor using Python %PY_VER% as its configuration language",
     long_description="""maildirproc is a program that processes one or
     several existing mail boxes in the maildir format. It is primarily
     focused on mail sorting -- i.e., moving, copying, forwarding and
@@ -38,13 +31,7 @@ setup(
     "License :: OSI Approved :: GNU General Public License (GPL)",
     "Operating System :: Unix",
     "Programming Language :: Python",
-    "Programming Language :: Python :: 2.5",
-    "Programming Language :: Python :: 2.6",
-    "Programming Language :: Python :: 2.7",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.0",
-    "Programming Language :: Python :: 3.1",
-    "Programming Language :: Python :: 3.2",
+%CLASSIFIERS%
     "Topic :: Communications :: Email",
     "Topic :: Communications :: Email :: Filters",
     ],

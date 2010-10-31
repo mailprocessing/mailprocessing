@@ -85,7 +85,6 @@ class TestFixture(unittest.TestCase):
     def verify_result(self, result):
         actual = {}
         for maildir in os.listdir(self._maildir_dir):
-            i = 0
             for subdir in ["cur", "new"]:
                 path = joinpath(self._maildir_dir, maildir, subdir)
                 number = len(os.listdir(path))

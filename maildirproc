@@ -32,7 +32,6 @@ delivered mail. And that's a feature, not a bug.
 """
 
 
-import codecs
 import hashlib
 import locale
 import os

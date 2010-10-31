@@ -18,7 +18,6 @@ define build_dist_archive
 	find build/$(1)-$(VERSION)-sdist -name '*~' | xargs -r rm -f
 	cd build/$(1)-$(VERSION)-sdist && ./setup.py sdist --formats=bztar
 	cp build/$(1)-$(VERSION)-sdist/dist/$(1)-$(VERSION).tar.bz2 .
-	rm -rf build/$(1)-$(VERSION)-sdist
 endef
 
 maildirproc-$(VERSION).tar.bz2: $(DIST_FILES) maildirproc setup.py

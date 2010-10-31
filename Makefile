@@ -1,29 +1,32 @@
 VERSION = $(shell ./maildirproc --version)
 
-all: maildirproc-$(VERSION).tar.gz maildirproc-python2-$(VERSION).tar.gz
+all: maildirproc-$(VERSION).tar.bz2 maildirproc-python2-$(VERSION).tar.bz2
 
 DIST_FILES = \
     LICENSE \
+    MANIFEST.in \
     NEWS \
     README \
     doc
 
 define build_dist_archive
-	rm -rf $(1)-$(VERSION)
-	mkdir $(1)-$(VERSION)
-	cp -r $(DIST_FILES) $(1)-$(VERSION)
-	cp $(1) $(1)-$(VERSION)/maildirproc
-	cp $(2) $(1)-$(VERSION)/setup.py
-	find $(1)-$(VERSION) -name '*~' | xargs -r rm -f
-	tar czf $@ $(1)-$(VERSION)
-	rm -rf $(1)-$(VERSION)
+	rm -rf build/$(1)-$(VERSION)-sdist
+	mkdir -p build/$(1)-$(VERSION)-sdist
+	cp -r $(DIST_FILES) build/$(1)-$(VERSION)-sdist
+	cp $(1) build/$(1)-$(VERSION)-sdist/maildirproc
+	cp $(2) build/$(1)-$(VERSION)-sdist/setup.py
+	find build/$(1)-$(VERSION)-sdist -name '*~' | xargs -r rm -f
+	cd build/$(1)-$(VERSION)-sdist && ./setup.py sdist --formats=bztar
+	cp build/$(1)-$(VERSION)-sdist/dist/$(1)-$(VERSION).tar.bz2 .
+	rm -rf build/$(1)-$(VERSION)-sdist
 endef
 
-maildirproc-$(VERSION).tar.gz: $(DIST_FILES) maildirproc setup.py
-	$(call build_dist_archive, maildirproc, setup.py)
+maildirproc-$(VERSION).tar.bz2: $(DIST_FILES) maildirproc setup.py
+	$(call build_dist_archive,maildirproc,setup.py)
 
-maildirproc-python2-$(VERSION).tar.gz: $(DIST_FILES) maildirproc-python2 setup-python2.py
-	$(call build_dist_archive, maildirproc, setup.py)
+maildirproc-python2-$(VERSION).tar.bz2: \
+		$(DIST_FILES) maildirproc-python2 setup-python2.py
+	$(call build_dist_archive,maildirproc-python2,setup-python2.py)
 
 maildirproc-python2: maildirproc
 	cp maildirproc $@.tmp
@@ -38,7 +41,7 @@ setup.py: setup.py.template
     "Programming Language :: Python :: 3",\
     "Programming Language :: Python :: 3.0",\
     "Programming Language :: Python :: 3.1",\
-    "Programming Language :: Python :: 3.2"/' \
+    "Programming Language :: Python :: 3.2",/' \
 	    -e 's/%MDP_NAME%/maildirproc/g' \
 	    -e 's/%MDP_VER%/$(VERSION)/g' \
 	    $< >$@
@@ -50,7 +53,7 @@ setup-python2.py: setup.py.template
 	    -e 's/%CLASSIFIERS%/\
     "Programming Language :: Python :: 2",\
     "Programming Language :: Python :: 2.6",\
-    "Programming Language :: Python :: 2.7"/' \
+    "Programming Language :: Python :: 2.7",/' \
 	    -e 's/%MDP_NAME%/maildirproc-python2/g' \
 	    -e 's/%MDP_VER%/$(VERSION)/g' \
 	    $< >$@

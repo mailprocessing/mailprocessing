@@ -62,11 +62,15 @@ the process again.</li>
 
 <h2>Download</h2>
 
+<p>Version 0.5.0, released 2010-TBD (see <a href="NEWS">NEWS</a> for a list of
+changes):</p>
+
 <ul>
 <li>
-<a href="releases/maildirproc-0.4.3.tar.gz">maildirproc-0.4.3.tar.gz</a>
-(version 0.4.3, released 2010-05-03; for more information see
- <a href="NEWS">NEWS</a>)
+For Python 3.x: <a href="releases/maildirproc-0.5.0.tar.gz">maildirproc-0.5.0.tar.gz</a>
+</li>
+<li>
+For Python 2.6/2.7: <a href="releases/maildirproc-python2-0.5.0.tar.gz">maildirproc-python2-0.5.0.tar.gz</a>
 </li>
 </ul>
 
@@ -81,19 +85,17 @@ the process again.</li>
 
 <h2>Background</h2>
 
-<p>I used <a href="http://www.procmail.org">procmail</a> to sort my
-mail for a long time, but I was not entirely happy with its
-configuration language. I subscribe to a lot of mailing lists and I
-use several e-mail addresses, so the <span
-class="command-line">.procmailrc</span> file was quite large and
-complex and I found it hard to express mail sorting rules elegantly. I
-wanted to be able to define and use functions, data structures, loops
-and other imperative language constructs and felt that procmail's
-rule-based vocabulary was limiting. I thought about writing a program
-to generate the configuration from some higher-level rules, but I
-never got to it. I also didn't feel comfortable with e-mail sorting
-being part of the delivery chain. (Granted, procmail can be used in
-other setups too.)</p>
+<p>For a long time, I used <a href="http://www.procmail.org">procmail</a> to
+sort my mail, but I was not entirely happy with its configuration language. I
+subscribe to a lot of mailing lists and I use several e-mail addresses, so
+the <span class="command-line">.procmailrc</span> file was quite large and
+complex and I found it hard to express mail sorting rules elegantly. I wanted
+to be able to define and use functions, data structures, if statements, loops
+and other imperative language constructs and felt that procmail's rule-based
+vocabulary was limiting. I thought about writing a program to generate the
+configuration from some higher-level rules, but I never got to it. I also
+didn't feel comfortable with e-mail sorting being part of the delivery chain.
+(Granted, procmail can be used in other setups too.)</p>
 
 <p>Then one day I stumbled upon a program called <a
 href="http://www.lysator.liu.se/~jc/maildird.html">Maildird</a>,
@@ -120,12 +122,12 @@ you like it, you are welcome to use (or improve) it too.</p>
 
 <h2>Installation</h2>
 
-<p>maildirproc has no other dependencies than a working <a
-href="http://www.python.org">Python</a> 2.5 (or higher) on a Unixish
-system. No special installation is needed if you use Python 2.x; just
-copy the <span class="command-line">maildirproc</span> file to a
-suitable place and run it. The alternative (which must be used if you
-use Python 3.x) is to run "python setup.py install".</p>
+<p>maildirproc has no other dependencies than a
+working <a href="http://www.python.org">Python</a> on a Unixish system. No
+special installation is needed; just copy
+the <span class="command-line">maildirproc</span> file to a suitable place and
+run it. You can also run run <span class="command-line">python setup.py
+install</span>.</p>
 
 <p>You can run maildirproc in several diffent ways, e.g.:</p>
 

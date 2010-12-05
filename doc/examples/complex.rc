@@ -86,7 +86,7 @@ def handle_incoming_ham(mail):
 
 def handle_incoming_spam(mail):
     processor.log("==> Learning as spam")
-    register_spam(mail),
+    register_spam(mail)
     mail.move(".mail.spam")
 
 def handle_incoming_unknown(mail):

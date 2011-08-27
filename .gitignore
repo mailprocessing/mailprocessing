@@ -1,0 +1,7 @@
+*~
+*.tar.bz2
+MANIFEST
+build
+dist
+maildirproc-python2
+setup*.py

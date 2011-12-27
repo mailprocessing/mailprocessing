@@ -280,18 +280,18 @@ class DryRunMail(MailBase):
     def delete(self):
         self._processor.log("==> Deleting")
 
-    def forward(self, addresses):
-        self._forward(True, addresses)
+    def forward(self, addresses, env_sender=None):
+        self._forward(True, addresses, env_sender)
 
-    def forward_copy(self, addresses):
-        self._forward(False, addresses)
+    def forward_copy(self, addresses, env_sender=None):
+        self._forward(False, addresses, env_sender)
 
     def move(self, maildir):
         self._processor.log("==> Moving to {0}".format(maildir))
 
     # ----------------------------------------------------------------
 
-    def _forward(self, delete, addresses):
+    def _forward(self, delete, addresses, env_sender):
         if isinstance(addresses, basestring):
             addresses = [addresses]
         else:
@@ -301,7 +301,11 @@ class DryRunMail(MailBase):
         else:
             copy = ""
         self._processor.log(
-            "==> Forwarding{0} to {1!r}".format(copy, addresses))
+            "==> Forwarding{0} to {1!r}{2}".format(
+                copy,
+                addresses,
+                " (envelope sender: {0}".format(env_sender)
+                    if env_sender is not None else ""))
 
 
 class Mail(MailBase):
@@ -313,11 +317,11 @@ class Mail(MailBase):
         self._processor.log("==> Deleting")
         self._delete()
 
-    def forward(self, addresses):
-        self._forward(True, addresses)
+    def forward(self, addresses, env_sender=None):
+        self._forward(True, addresses, env_sender)
 
-    def forward_copy(self, addresses):
-        self._forward(False, addresses)
+    def forward_copy(self, addresses, env_sender=None):
+        self._forward(False, addresses, env_sender)
 
     def move(self, maildir):
         self._processor.log("==> Moving to {0}".format(maildir))
@@ -386,7 +390,7 @@ class Mail(MailBase):
                 " it".format(self.path),
                 e)
 
-    def _forward(self, delete, addresses):
+    def _forward(self, delete, addresses, env_sender):
         if isinstance(addresses, basestring):
             addresses = [addresses]
         else:
@@ -395,6 +399,10 @@ class Mail(MailBase):
             copy = ""
         else:
             copy = " copy"
+        flags = self._processor.sendmail_flags
+        if env_sender is not None:
+            flags += " -f {0}".format(env_sender)
+
         self._processor.log("==> Forwarding{0} to {1!r}".format(copy, addresses))
         try:
             source_fp = open(self.path, "rb")
@@ -406,7 +414,7 @@ class Mail(MailBase):
         p = subprocess.Popen(
             "{0} {1} -- {2}".format(
                 self._processor.sendmail,
-                self._processor.sendmail_flags,
+                flags,
                 " ".join(addresses)
                 ),
             shell=True,

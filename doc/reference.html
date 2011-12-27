@@ -178,11 +178,17 @@ maildir base directory.</dd>
 <dt>delete()</dt>
 <dd>Delete the mail.</dd>
 
-<dt>forward(<i>addresses</i>)</dt>
-<dd>Forward the mail to one or several e-mail addresses <b>and delete the mail</b>. <i>addresses</i> can be either a string or a list of strings.</dd>
+<dt>forward(<i>addresses[, env_sender]</i>)</dt>
+<dd>Forward the mail to one or several e-mail addresses <b>and delete the
+mail</b>. <i>addresses</i> can be either a string or a list of
+strings. <i>env_sender</i> (optional) specifies which envelope sender address
+to use.</dd>
 
-<dt>forward_copy(<i>addresses</i>)</dt>
-<dd>Forward a copy of the mail to one or several e-mail addresses. <i>addresses</i> can be either a string or a list of strings.</dd>
+<dt>forward_copy(<i>addresses[, env_sender]</i>)</dt>
+<dd>Forward a copy of the mail to one or several e-mail
+addresses. <i>addresses</i> can be either a string or a list of
+strings. <i>env_sender</i> (optional) specifies which envelope sender address
+to use.</dd>
 
 <dt>from_mailing_list(<i>list</i>)</dt>
 <dd>Check whether the mail originated from the mailing list

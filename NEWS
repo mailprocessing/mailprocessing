@@ -1,3 +1,7 @@
+Unreleased
+
+  - Added env_sender parameter to forward and forward_copy methods.
+
 Version 0.5.0 (2010-10-31)
 
   - maildirproc is now a Python 3.x project. Install maildirproc-python2 for

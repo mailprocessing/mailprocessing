@@ -65,3 +65,7 @@ for mail in processor:
     # Forward the mail to external recipients AND DELETE THE MAIL.
     mail.forward("address@example.com")
     mail.forward(["address1@example.com", "address2@example.com"])
+
+    # Forward a copy of the mail and explicitly set the envelope sender
+    # address.
+    mail.forward_copy("address@example.com", "envelope@example.com")

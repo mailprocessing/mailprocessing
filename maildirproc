@@ -375,7 +375,6 @@ class Mail(MailBase):
             self._processor.log_io_error(
                 "Could not rename {0} to {1}".format(tmp_target, target),
                 e)
-            return
 
     def _delete(self):
         try:

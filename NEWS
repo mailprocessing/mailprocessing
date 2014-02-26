@@ -1,6 +1,8 @@
 Unreleased
 
   - Added env_sender parameter to forward and forward_copy methods.
+  - Added mark_read() method to mail class. This allows users to simply
+    mark new mail as read if it matches.
 
 Version 0.5.0 (2010-10-31)
 

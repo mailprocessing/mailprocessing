@@ -330,7 +330,7 @@ class Mail(MailBase):
         md_dir = split_path[-2]
         mail_filename = split_path[-1]
 
-        if mail_filename.endswith(',S') and md_dir == 'cur':
+        if md_dir == "cur" and "S" in self._get_flagpart():
             self._processor.log(
                 "==> Ignoring - already read: {0}".format(self.path)
             )

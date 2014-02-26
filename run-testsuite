@@ -49,9 +49,11 @@ class TestFixture(unittest.TestCase):
                 os.makedirs(joinpath(self._maildir_dir, md, d))
 
     def create(self, name, dest):
-        fp = open(joinpath(self._maildir_dir, dest), "w")
+        filename = joinpath(self._maildir_dir, dest)
+        fp = open(filename, "w")
         fp.write("".join(getattr(self, "_testmail_data_%s" % name)))
         fp.close()
+        return filename
 
     def run_mdp(self, rc, maildirs, maildir_base=""):
         if maildir_base is None:
@@ -158,6 +160,28 @@ class TestSuite(TestFixture):
         filename = os.listdir(joinpath(self._maildir_dir, "dest/cur"))[0]
         self.assertNotEqual(filename, "a:2,x")
         self.assert_(filename.endswith(":2,x"))
+
+    def test_mark_new_mail_as_read(self):
+        rc = '''
+            for mail in processor:
+                mail.mark_read()
+            '''
+        self.makedirs(["incoming"])
+        self.create("a", "incoming/new/a:2,")
+        self.run_mdp(rc, ["incoming"])
+        self.verify_result({"incoming/cur": 1})
+
+    def test_do_not_mark_seen_mail_as_read(self):
+        rc = '''
+            for mail in processor:
+                mail.mark_read()
+            '''
+        self.makedirs(["inbox"])
+        mail_fname = self.create("a", "inbox/cur/a:2,FRS")
+        self.run_mdp(rc, ["inbox"])
+
+        self.verify_result({"inbox/cur": 1})
+        self.assert_(mail_fname.endswith(":2,FRS"))
 
     def test_copy(self):
         rc = '''

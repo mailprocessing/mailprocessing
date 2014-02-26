@@ -289,6 +289,8 @@ class DryRunMail(MailBase):
     def move(self, maildir):
         self._processor.log("==> Moving to {0}".format(maildir))
 
+    def mark_read(self):
+        self._processor.log("==> Flag as read {0}".format(self.path))
     # ----------------------------------------------------------------
 
     def _forward(self, delete, addresses, env_sender):
@@ -322,6 +324,26 @@ class Mail(MailBase):
 
     def forward_copy(self, addresses, env_sender=None):
         self._forward(False, addresses, env_sender)
+
+    def mark_read(self):
+        split_path = self.path.split(os.sep)
+        md_dir = split_path[-2]
+        mail_filename = split_path[-1]
+
+        if mail_filename.endswith(',S') and md_dir == 'cur':
+            self._processor.log(
+                "==> Ignoring - already read: {0}".format(self.path)
+            )
+            return
+
+        target = os.path.join(
+            self._processor.maildir_base,
+            self.maildir,
+            'cur',
+            '{0}S'.format(mail_filename)
+        )
+        self._processor.log("==> Read: {0}".format(self.path))
+        self._processor.rename(self.path, target)
 
     def move(self, maildir):
         self._processor.log("==> Moving to {0}".format(maildir))

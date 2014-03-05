@@ -277,7 +277,8 @@ class TestSuite(TestFixture):
     def test_utf8_header(self):
         rc = self.fix_u('''
             for mail in processor:
-                if mail["Subject"] == __u__"A subject with r\\xe4vsm\\xf6rg\\xe5s":
+                if mail["Subject"].matches(
+                        __u__"A subject with\\s+r\\xe4vsm\\xf6rg\\xe5s"):
                     mail.move("dest")
             ''')
 

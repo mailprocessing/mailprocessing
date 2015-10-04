@@ -15,14 +15,14 @@ setup(
     download_url=("http://joel.rosdahl.net/maildirproc/releases/"
                   "%MDP_NAME%-%MDP_VER%.tar.bz2"),
     description="maildir processor using Python %PY_VER% as its configuration language",
-    long_description="""maildirproc is a program that processes one or
-    several existing mail boxes in the maildir format. It is primarily
-    focused on mail sorting -- i.e., moving, copying, forwarding and
-    deleting mail according to a set of rules. It can be seen as an
-    alternative to procmail, but instead of being a delivery agent
-    (which wants to be part of the delivery chain), maildirproc only
-    processes already delivered mail. And that's a feature, not a
-    bug.""",
+    long_description="""maildirproc is a program that processes one or \
+several existing mail boxes in the maildir format. It is primarily \
+focused on mail sorting -- i.e., moving, copying, forwarding and \
+deleting mail according to a set of rules. It can be seen as an \
+alternative to procmail, but instead of being a delivery agent \
+(which wants to be part of the delivery chain), maildirproc only \
+processes already delivered mail. And that's a feature, not a \
+bug.""",
     classifiers=[
     "Development Status :: 5 - Production/Stable",
     "Environment :: Console",

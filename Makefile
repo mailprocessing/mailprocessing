@@ -40,7 +40,9 @@ setup.py: setup.py.template
     "Programming Language :: Python :: 3",\
     "Programming Language :: Python :: 3.0",\
     "Programming Language :: Python :: 3.1",\
-    "Programming Language :: Python :: 3.2",/' \
+    "Programming Language :: Python :: 3.2",\
+    "Programming Language :: Python :: 3.3",\
+    "Programming Language :: Python :: 3.4",/' \
 	    -e 's/%MDP_NAME%/maildirproc/g' \
 	    -e 's/%MDP_VER%/$(VERSION)/g' \
 	    $< >$@

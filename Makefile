@@ -60,6 +60,10 @@ setup-python2.py: setup.py.template
 	    $< >$@
 	chmod +x $@
 
+upload: all
+	twine upload build/maildirproc-$(VERSION)-sdist/dist/maildirproc-$(VERSION).tar.bz2
+	twine upload build/maildirproc-python2-$(VERSION)-sdist/dist/maildirproc-python2-$(VERSION).tar.bz2
+
 clean:
 	rm -rf maildirproc*-$(VERSION) build dist MANIFEST *-python2*
 	rm -rf *.gz setup.py

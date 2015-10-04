@@ -1,15 +1,14 @@
 #! /bin/sh
 
 pylint \
-    --disable-msg=C0103 \
-    --disable-msg=C0111 \
-    --disable-msg=C0121 \
-    --disable-msg=R0902 \
-    --disable-msg=R0912 \
-    --disable-msg=R0915 \
-    --disable-msg=W0122 \
-    --disable-msg=W0704 \
-    --include-ids=y \
+    --disable=C0103 \
+    --disable=C0111 \
+    --disable=C0121 \
+    --disable=R0902 \
+    --disable=R0912 \
+    --disable=R0915 \
+    --disable=W0122 \
+    --disable=W0704 \
     --reports=n \
     maildirproc 2>&1 |
     grep -v "No config file found, using default configuration"

@@ -108,7 +108,7 @@ class MailHeader(object):
         return self._text == x
 
     def __ne__(self, x):
-        return not (self._text == x)
+        return not self._text == x
 
     def __str__(self):
         return self._text
@@ -305,7 +305,7 @@ class DryRunMail(MailBase):
                 copy,
                 addresses,
                 " (envelope sender: {0}".format(env_sender)
-                    if env_sender is not None else ""))
+                if env_sender is not None else ""))
 
 
 class Mail(MailBase):
@@ -329,7 +329,7 @@ class Mail(MailBase):
         target = os.path.join(
             self._processor.maildir_base,
             maildir,
-            self.path.split(os.sep)[-2], # new/cur
+            self.path.split(os.sep)[-2],  # new/cur
             self._processor.create_maildir_name() + flagpart)
         self._processor.rename(self.path, target)
 
@@ -371,7 +371,7 @@ class Mail(MailBase):
         target = os.path.join(
             self._processor.maildir_base,
             maildir,
-            self.path.split(os.sep)[-2], # new/cur
+            self.path.split(os.sep)[-2],  # new/cur
             self._processor.create_maildir_name() + flagpart)
         try:
             self._processor.rename(tmp_target, target)
@@ -403,7 +403,8 @@ class Mail(MailBase):
         if env_sender is not None:
             flags += " -f {0}".format(env_sender)
 
-        self._processor.log("==> Forwarding{0} to {1!r}".format(copy, addresses))
+        self._processor.log(
+            "==> Forwarding{0} to {1!r}".format(copy, addresses))
         try:
             source_fp = open(self.path, "rb")
         except IOError as e:
@@ -458,8 +459,10 @@ class MaildirProcessor(object):
 
     def get_auto_reload_rcfile(self):
         return self._auto_reload_rcfile
+
     def set_auto_reload_rcfile(self, value):
         self._auto_reload_rcfile = value
+
     auto_reload_rcfile = property(
         get_auto_reload_rcfile, set_auto_reload_rcfile)
 
@@ -475,14 +478,18 @@ class MaildirProcessor(object):
 
     def get_maildir_base(self):
         return self._maildir_base
+
     def set_maildir_base(self, path):
         self._maildir_base = os.path.expanduser(path)
+
     maildir_base = property(get_maildir_base, set_maildir_base)
 
     def get_maildirs(self):
         return self._maildirs
+
     def set_maildirs(self, maildirs):
         self._maildirs = maildirs
+
     maildirs = property(get_maildirs, set_maildirs)
 
     @property
@@ -491,14 +498,18 @@ class MaildirProcessor(object):
 
     def get_sendmail(self):
         return self._sendmail
+
     def set_sendmail(self, sendmail):
         self._sendmail = sendmail
+
     sendmail = property(get_sendmail, set_sendmail)
 
     def get_sendmail_flags(self):
         return self._sendmail_flags
+
     def set_sendmail_flags(self, sendmail_flags):
         self._sendmail_flags = sendmail_flags
+
     sendmail_flags = property(get_sendmail_flags, set_sendmail_flags)
 
     def __iter__(self):
@@ -589,7 +600,6 @@ class MaildirProcessor(object):
                 "Error: Could not rename {0} to {1}: {2}".format(
                     source, target, e))
 
-
     # ----------------------------------------------------------------
     # Private methods:
 
@@ -604,6 +614,7 @@ class MaildirProcessor(object):
                 return None
 
 ######################################################################
+
 
 def main(argv):
     maildirproc_directory = "~/.maildirproc"

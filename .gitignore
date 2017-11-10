@@ -5,3 +5,7 @@ build
 dist
 maildirproc-python2
 setup*.py
+*.pyc
+*.swp
+*.egg-info/
+maildirproc-python2.tmp

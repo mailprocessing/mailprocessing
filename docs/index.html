@@ -24,12 +24,24 @@ delivery agent (which wants to be part of the delivery chain),
 maildirproc only processes already delivered mail. And that's a
 feature, not a bug.</p>
 
+<p>imapproc is a program that processes one or more folders on an 
+<a href="https://en.wikipedia.org/wiki/Internet_Message_Access_Protocol">IMAP</a>
+server. Much like maildirproc it sorts, e.g. moves, copies and forwards
+email. It uses the same filter configuration mechanism as maildirproc: a
+Python script that hooks into maildirprocs processing code.</p>
+
 <p>maildirproc was written by <a href="http://joel.rosdahl.net">Joel
 Rosdahl</a> &lt;<a
 href="mailto:joel@rosdahl.net">joel@rosdahl.net</a>&gt; and is
 distributed under the terms of the <a
 href="http://www.gnu.org/licenses/gpl.html">GNU General Public
 Licence.</a></p>
+<p>imapproc was written by <a href="http://btw23.de/johannes/">Johannes
+Grassler</a> &lt;<a
+href="mailto:johannes@btw23.de">johannes@btw23.de</a>&gt; and is
+distributed under the terms of the <a
+href="http://www.gnu.org/licenses/gpl.html">GNU General Public
+Licence, just like maildirproc.</a></p>
 
 <h2>Benefits</h2>
 
@@ -39,8 +51,8 @@ author) it's this:</p>
 
 <ul>
 
-<li>It's small. maildirproc is just a small <a
-href="http://www.python.org">Python</a> program that is easy to
+<li>It's small. maildirproc and imapproc are just small <a
+href="http://www.python.org">Python</a> programs that are easy to
 understand.</li>
 
 <li>It's robust. If there's a syntax error in the configuration, or a
@@ -64,10 +76,7 @@ the process again.</li>
 
 <ul>
   <li>
-    <a href="https://pypi.python.org/pypi/maildirproc">For Python 3.x</a>
-  </li>
-  <li>
-    <a href="https://pypi.python.org/pypi/maildirproc-python2">For Python 2.6/2.7</a>
+    <a href="https://pypi.python.org/pypi/mailprocessing">For Python 3.x</a>
   </li>
 </ul>
 
@@ -75,7 +84,7 @@ the process again.</li>
 
 <ul>
   <li>
-    <a href="https://github.com/jrosdahl/maildirproc">https://github.com/jrosdahl/maildirproc</a>
+    <a href="https://github.com/mailprocessing/mailprocessing">https://github.com/mailprocessing/mailprocessing</a>
     (public <a href="http://git-scm.com">Git</a> repository)
   </li>
 </ul>
@@ -111,7 +120,7 @@ you like it, you are welcome to use (or improve) it too.</p>
 
 <h2>Documentation</h2>
 
-<p>See the <a href="reference.html">maildirproc reference</a>.</p>
+<p>See the <a href="reference.html">mailprocessing reference</a>.</p>
 
 <h2>Examples</h2>
 
@@ -119,14 +128,13 @@ you like it, you are welcome to use (or improve) it too.</p>
 
 <h2>Installation</h2>
 
-<p>maildirproc has no other dependencies than a
+<p>mailprocessing has no other dependencies than a
 working <a href="http://www.python.org">Python</a> on a Unixish system. No
-special installation is needed; just copy
-the <span class="command-line">maildirproc</span> file to a suitable place and
-run it. You can also run run <span class="command-line">python setup.py
-install</span>.</p>
+special installation is needed: a simple <span class="command-line">pip install
+mailprocessing</span> is sufficient . You can also run run <span
+class="command-line">python setup.py install</span>.</p>
 
-<p>You can run maildirproc in several diffent ways, e.g.:</p>
+<p>You can run maildirproc or imapproc in several diffent ways, e.g.:</p>
 
 <ul>
 <li>

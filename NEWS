@@ -1,3 +1,13 @@
+Version 1.2.0 (2017-12-22)
+
+  - Maintenance taken over by Johannes Grassler <johannes@btw23.de>
+  - Project moved to https://github.com/mailprocessing/mailprocessing
+  - Standalone maildirproc script split up into a library
+  - Added imapproc: performs the same task maildirproc does
+    for remote IMAP folders
+  - New methods for mail classes: is_seen(), is_flagged() 
+    and strict_mailing_list()
+
 Version 1.0.1 (2015-10-04)
 
   - Tweaks to packaging, no functional changes.

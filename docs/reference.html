@@ -239,7 +239,6 @@ specific to MaildirProcessor instances.</dd>
 <dd>A list of maildirs (subdirectories of the maildir base directory).
 Assignment to this property overrides the corresponding command-line
 option. This property is specific to MaildirProcessor instances.</dd>
-</dl>
 
 <dt>folders</dt>
 <dd>A list of IMAP folders. Assignment to this property overrides the
@@ -252,27 +251,27 @@ ImapProcessor instances.</dd>
 
 <dl class="class-attributes">
 
-<dt>create_folder(<i>folder</i>, <i>parents=True</i>, <i>prefix='.')</dt>
+<dt>create_folder(<i>folder</i>, <i>parents=True</i>, <i>prefix='.'</i>)</dt>
 <dd>Create folder <i>folder</i> (a string, or a list of namespace
 components).
 
 This method can safely be called for existing folders. If the folder
 exists already, the method will log that it exists and exit without
-trying to create it.
+trying to create it.</dd>
 
-For MaildirProcessor <i>folder</i> does not need to be on the same file
+<dd>For MaildirProcessor <i>folder</i> does not need to be on the same file
 system as the mail. If the <i>folder</i> path is relative, it will be
 considered relative to the maildir base directory.</dd>
 
-The boolean keyword argument <i>parents</i> governs whether parent
+<dd>The boolean keyword argument <i>parents</i> governs whether parent
 folders should be created as well, e.g. if you create
 'github.jrosdahl.maildirproc', 'github' and 'github.jrosdahl' will be
-created as well. This is the default behaviour.
+created as well. This is the default behaviour.</dd>
 
-The <i>prefix</i> keyword argument specifies a prefix to prepend the folder
+<dd>The <i>prefix</i> keyword argument specifies a prefix to prepend the folder
 name with. This defaults to the processors <i>prefix</i> attribute which
 is set via the --prefix command line attribute for MaildirProcessor
-instances.
+instances.</dd>
 
 </dl>
 

@@ -246,6 +246,7 @@ class ImapProcessor(MailProcessor):
             if self._run_once:
                 self.clean_exit()
             time.sleep(self.interval)
+            self._cache_headers()
 
 
     # ----------------------------------------------------------------

@@ -87,8 +87,8 @@ class ImapMail(MailBase):
 
         folder = self._processor.list_path(folder, sep=self._processor.separator)
 
-        self._processor.log("==> Copying {0} to {1}".format(self.uid, folder))
         try:
+            self._processor.log("==> Copying {0} to {1}".format(self.uid, folder))
             status, data = self._processor.imap.uid('copy', self.uid, folder)
         except self._processor.imap.error as e:
             self._processor.fatal_imap_error("Copying message UID %s to %s"
@@ -98,12 +98,23 @@ class ImapMail(MailBase):
                 self._processor.log("==> Destination folder %s does not exist, "
                                     "creating." % folder)
                 self._processor.create_folder(folder)
+                try:
+                    self._processor.log("==> Copying {0} to {1}".format(self.uid, folder))
+                    status, data = self._processor.imap.uid('copy', self.uid, folder)
+                except self._processor.imap.error as e:
+                    self._processor.fatal_imap_error("Copying message UID %s to %s"
+                                                   % (self.uid, folder), e)
+                if status == 'NO':
+                    self._processor.fatal_imap_error("Copying message UID %s "
+                                                     " to %s failed with NO, "
+                                                     " aborting." %
+                                                     (self.uid, folder))
             else:
                 self._processor.fatal_error("Destination folder %s does not "
                                             "exist and I am not supposed to "
                                             "create folders. Please use "
                                             "move() or copy() with "
-                                            "create=True to automtically "
+                                            "create=True to automatically "
                                             "create nonexistent "
                                             "folders." % folder)
 

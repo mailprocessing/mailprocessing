@@ -65,6 +65,8 @@ class ImapProcessor(MailProcessor):
             if not kwargs['port']:
                 port = 993
             ssl_context = ssl.SSLContext(getattr(ssl, 'PROTOCOL_TLS', ssl.PROTOCOL_SSLv23))
+            ssl_context.verify_mode = ssl.CERT_REQUIRED
+            ssl_context.check_hostname = True
             if kwargs['certfile']:
                 ssl_context.load_cert_chain(kwargs['certfile'])
             else:

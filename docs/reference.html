@@ -198,6 +198,13 @@ approach for specifying the IMAP password. Either this option or
 <dt>-s --use-ssl</dt>
 <dd>Use SSL to connect to the IMAP server (default: no).</dd>
 
+<dt>--insecure</dt>
+<dd>Do no certificate validation when connecting to an SSL IMAP server (default:
+no).  This means the certificate subject names will be ignored, as will any
+certificate authorities.  Your connection will not be protected from active
+attackers.
+</dd>
+
 </dl>
 
 <h2>Configuration</h2>

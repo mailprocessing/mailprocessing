@@ -193,6 +193,11 @@ def main():
         action="store_true",
         default=False,
         help="Use SSL to connect to IMAP server.")
+    parser.add_option(
+        "--insecure",
+        action="store_true",
+        default=False,
+        help="Skip SSL certificate validation when connecting to IMAP server (unsafe).")
 
     (options, _) = parser.parse_args(sys.argv[1:])
 
@@ -209,6 +214,10 @@ def main():
 
     if options.password and options.password_command:
         print("Please specify only one of --password or --password-command.", file=sys.stderr)
+        bad_options = True
+
+    if options.insecure and options.certfile:
+        print("Please specify only one of --insecure or --certfile.", file=sys.stderr)
         bad_options = True
 
     if bad_options:
@@ -258,7 +267,7 @@ def main():
 
     for opt in ("auto_reload_rcfile", "certfile", "dry_run", "folders",
                 "folder_prefix", "folder_separator", "host", "interval",
-                "port", "user", "use_ssl", "verbosity"):
+                "port", "user", "use_ssl", "insecure", "verbosity"):
         processor_kwargs[opt] = options.__dict__[opt]
 
     if options.cache_headers:

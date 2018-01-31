@@ -300,7 +300,8 @@ class ImapMail(MailBase):
               self.message_flags.append(flag.decode('ascii'))
 
 
-        headers = email_parser.Parser().parsestr(data[0][1].decode('ascii'),
+        headers = email_parser.Parser().parsestr(data[0][1].decode('ascii',
+                                                                   'ignore'),
                                                  headersonly=True)
 
         if self._headers is None:

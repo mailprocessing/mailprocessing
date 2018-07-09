@@ -1,3 +1,9 @@
+Version 1.2.1 (2018-01-12)
+
+  - Fix issues/3: copy()/move() no longer eats the first email
+    copied/moved to a newly created folder
+  - Various small documentation fixes
+
 Version 1.2.0 (2017-12-22)
 
   - Maintenance taken over by Johannes Grassler <johannes@btw23.de>

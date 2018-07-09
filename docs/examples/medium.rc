@@ -1,0 +1,88 @@
+import errno
+import os
+import re
+import time
+
+import email.utils
+
+# This RC file shows off some of the newer features, such as the move()
+# function with automatic creation of directories and introduces a few concepts
+# such as inbox aging and finer grained filtering for high volume lists that
+# might be interesting.
+
+# Creates folder (if it does not exist) and moves all email with its Seen flag
+# set to their destination folder.
+#
+# This leads to the following workflow (unless explicitly specified otherwise,
+# e.g. for emails from high-volume mailing lists):
+#
+# 1. All emails end up in INBOX at first
+# 2. Only once an email has been marked as read it is subject to processing.
+#
+def create_move(mail, folder, move_all=False):
+  # Only act on emails that have been read already
+  # or for which move_all has been specified explicitly.
+  if mail.is_seen() or move_all:
+      mail.move(folder, create=True)
+
+# Helper function: extract the List ID from list emails
+def listid_listname(mail):
+   m = re.search("<(.*)>", '%s' % mail['List-Id'])
+   return m.group(1).split('.')[0]
+
+# Move old emails to an archive folder
+def age_inbox(mail, max_days=60, archive_folder=["Archives"]):
+  date = email.utils.parsedate_tz('%s' % mail['Date'])
+  try:
+     year = "%s" % date[0]
+  except Exception as e:
+    processor.log_error("==> Cannot process Date header, ignoring.")
+    return
+
+  timestamp_now = int(time.time())
+  timestamp_mail = email.utils.mktime_tz(date)
+  if (timestamp_now - timestamp_mail) > (max_days * 86400):
+      processor.log("==> Email is older than %s days, aging out." % max_days)
+      folder = archive_folder + [year]
+      create_move(mail, folder)
+
+# Helper function: returns True if emails have interesting keywords in the
+# Subject: or From: headers (useful for high-volume lists)
+def odev_interesting(mail):
+    subjects = ("magnum", "monasca", "keystone")
+    froms = ("opensuse.org", "suse.de", "suse.com", "openstack.org")
+
+    for subject in subjects:
+        if mail['Subject'].contains(subject):
+            return True
+
+    for f in froms:
+        if mail['From'].contains(f):
+            return True
+
+    return False
+
+# Actual processing loop
+for mail in processor:
+  # Low volume, only process emails that have been marked as read
+  if mail.strict_mailing_list("opensuse-buildservice@opensuse.org"):
+      create_move(mail, ["INBOX", "lists-opensuse", "opensuse-buildservice"])
+      continue
+
+  # High volume list, move to list folder right away
+  if mail.from_mailing_list("openstack-operators@lists.openstack.org"):
+      create_move(mail, ["INBOX", "lists", "openstack-operators"], move_all=True)
+      continue
+
+  # High volume list, move most emails to list folder right away...
+  if mail.from_mailing_list("openstack-dev@lists.openstack.org"):
+      # ...but retain interesting emails in INBOX until they've been read.
+      if odev_interesting(mail):
+          create_move(mail, ["INBOX", "lists", "openstack-dev"], move_all=False)
+      else:
+          create_move(mail, ["INBOX", "lists", "openstack-dev"], move_all=True)
+      continue
+
+  # Now that all messages which could be moved have been moved, age the
+  # remainder out.
+  age_inbox(mail)

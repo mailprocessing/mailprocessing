@@ -1,3 +1,7 @@
+Version 1.2.3 (2018-07-09)
+
+  - Add medium.rc sample RC file (examples for some of the newer functionality)
+
 Version 1.2.2 (2018-07-09)
 
   - Fix issues/2: header caching in continuous mode will now refresh the cache

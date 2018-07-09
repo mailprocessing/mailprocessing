@@ -1,20 +1,20 @@
 VERSION = $(shell grep 'version=' setup.py.template | cut -d'"' -f 2)
-all: maildirproc-$(VERSION).tar.bz2
+all: mailprocessing-$(VERSION).tar.bz2
 
 DIST_FILES = \
     LICENSE \
     MANIFEST.in \
     NEWS \
     README \
-    doc
+    docs
 
 define build_dist_archive
 	rm -rf build/
 	./setup.py sdist
 endef
 
-maildirproc-$(VERSION).tar.bz2: $(DIST_FILES) maildirproc setup.py
-	$(call build_dist_archive,maildirproc,setup.py)
+mailprocessing-$(VERSION).tar.bz2: $(DIST_FILES) mailprocessing setup.py
+	$(call build_dist_archive,mailprocessing,setup.py)
 
 setup.py: setup.py.template
 	sed -e 's/%PY_BIN%/python3/g' \

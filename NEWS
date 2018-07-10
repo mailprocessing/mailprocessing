@@ -1,3 +1,9 @@
+Version 1.2.4 (2018-07-10)
+
+  - Fix all target in Makefile
+  - Major documentation overhaul: converted documentation to RST and introduced
+    pandoc based build for HTML documentation and manual pages.
+
 Version 1.2.3 (2018-07-09)
 
   - Add medium.rc sample RC file (examples for some of the newer functionality)

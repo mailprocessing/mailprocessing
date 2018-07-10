@@ -32,6 +32,9 @@ setup.py: setup.py.template
 	    $< >$@
 	chmod +x $@
 
+docs:
+	(cd docs; make)
+
 upload: all
 	twine upload build/maildirproc-$(VERSION)-sdist/dist/maildirproc-$(VERSION).tar.bz2
 
@@ -40,4 +43,4 @@ clean:
 	rm -rf *.gz setup.py
 	find -name '*~' | xargs rm -f
 
-.PHONY: all clean
+.PHONY: all clean docs

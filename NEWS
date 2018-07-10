@@ -1,3 +1,7 @@
+Version 1.2.5 (2018-07-10)
+
+  - Replace setup.py templating by static setup.py
+
 Version 1.2.4 (2018-07-10)
 
   - Fix all target in Makefile

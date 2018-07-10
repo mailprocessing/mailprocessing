@@ -1,0 +1,63 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title></title>
+  <style type="text/css">code{white-space: pre;}</style>
+</head>
+<body>
+<div id="content">
+<p><strong>mailprocessing</strong></p>
+<p>The following programs are part of the mailprocessing package: maildirproc is a program that processes one or several existing mail boxes in the <a href="http://en.wikipedia.org/wiki/Maildir">maildir</a> format. It is primarily focused on mail sorting — i.e., moving, copying, forwarding and deleting mail according to a set of rules. It can be seen as an alternative to <a href="http://www.procmail.org">procmail</a>, but instead of being a delivery agent (which wants to be part of the delivery chain), maildirproc only processes already delivered mail. And that's a feature, not a bug.</p>
+<p>imapproc is a program that processes one or more folders on an <a href="https://en.wikipedia.org/wiki/Internet_Message_Access_Protocol">IMAP</a> server. Much like maildirproc it sorts, e.g. moves, copies and forwards email. It uses the same filter configuration mechanism as maildirproc: a Python script that hooks into maildirprocs processing code.</p>
+<p>maildirproc was written by <a href="http://joel.rosdahl.net">Joel Rosdahl</a> &lt;<a href="mailto:joel@rosdahl.net">joel@rosdahl.net</a>&gt; and is distributed under the terms of the <a href="http://www.gnu.org/licenses/gpl.html">GNU General Public Licence.</a></p>
+<p>imapproc was written by <a href="http://btw23.de/johannes/">Johannes Grassler</a> &lt;<a href="mailto:johannes@btw23.de">johannes@btw23.de</a>&gt; and is distributed under the terms of the <a href="http://www.gnu.org/licenses/gpl.html">GNU General Public Licence</a>, just like maildirproc.</p>
+<p><strong>Benefits</strong></p>
+<p>So, what's good about using maildirproc instead of a more conventional setup, with a delivery agent like procmail? For me (the author) it's this:</p>
+<ul>
+<li>It's small. maildirproc and imapproc are just small <a href="http://www.python.org">Python</a> programs that are easy to understand.</li>
+<li>It's robust. If there's a syntax error in the configuration, or a bug that makes the program crash, then nothing happens; the mail will not disappear. And as a consequence of using maildirs, no locks are needed.</li>
+<li>The configuration language is relatively easy to understand and use, yet very powerful. The rules are expressed in a full-blown computer language (<a href="http://www.python.org">Python</a>).</li>
+<li>It's easy to test new configuration. Since maildirproc is not part of the delivery chain, it's just a matter of taking down or disabling the process, modifying the configuration and running maildirproc in test mode. When the new configuration is ready, just start or enable the process again.</li>
+</ul>
+<p><strong>Download</strong></p>
+<ul>
+<li><a href="https://pypi.python.org/pypi/mailprocessing">For Python 3.x</a></li>
+</ul>
+<p><strong>Source code repository</strong></p>
+<ul>
+<li><a href="https://github.com/mailprocessing/mailprocessing" class="uri">https://github.com/mailprocessing/mailprocessing</a> (public <a href="http://git-scm.com">Git</a> repository)</li>
+</ul>
+<p><strong>Background</strong></p>
+<p>For a long time, I used <a href="http://www.procmail.org">procmail</a> to sort my mail, but I was not entirely happy with its configuration language. I subscribe to a lot of mailing lists and I use several e-mail addresses, so the .procmailrc file was quite large and complex and I found it hard to express mail sorting rules elegantly. I wanted to be able to define and use functions, data structures, if statements, loops and other imperative language constructs and felt that procmail's rule-based vocabulary was limiting. I thought about writing a program to generate the configuration from some higher-level rules, but I never got to it. I also didn't feel comfortable with e-mail sorting being part of the delivery chain. (Granted, procmail can be used in other setups too.)</p>
+<p>Then one day I stumbled upon a program called <a href="http://www.lysator.liu.se/~jc/maildird.html">Maildird</a>, written by Jörgen Cederlöf, and I liked its basic design:</p>
+<div class="quote">
+<p>&quot;Maildird calmly waits until the mail is delivered, notices that a new mail has arrived in the Maildir it monitors, writes something useful in the log [...] and moves the mail safely to the correct Maildir.&quot;</p>
+</div>
+<p>Since Maildird was not configurable (at least not at the time) in the way I wanted, I decided to write my own program that worked somewhat similarly but with a configuration style that suited me. If you like it, you are welcome to use (or improve) it too.</p>
+<p><strong>Documentation</strong></p>
+<p>See the <a href="reference.html">mailprocessing reference</a>.</p>
+<p><strong>Examples</strong></p>
+<p>See the <a href="examples/">examples</a> directory.</p>
+<p><strong>Installation</strong></p>
+<p>mailprocessing has no other dependencies than a working <a href="http://www.python.org">Python</a> on a Unixish system. No special installation is needed: a simple pip install mailprocessing is sufficient . You can also run run python setup.py install.</p>
+<p>You can run maildirproc or imapproc in several diffent ways, e.g.:</p>
+<ul>
+<li><p>Manually: You could, for example, run</p>
+<div class="code-example">
+<p>maildirproc --once -r foo.rc -b . -m Maildir</p>
+</div>
+to apply the program in foo.rc once on a maildir directory called Maildir in the current directory.</li>
+<li><p>By cron: Put a row like</p>
+<div class="code-example">
+<p>* * * * * maildirproc --once</p>
+</div>
+in your crontab to run maildirproc each minute (using the default RC file ~/.maildirproc/default.rc).</li>
+<li>As a long-running process: Just start maildirproc (without the --once flag).</li>
+<li>Using some service supervision framework, for example <a href="http://smarden.org/runit/">runit</a>.</li>
+</ul>
+</div>
+</body>
+</html>

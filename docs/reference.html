@@ -1,0 +1,224 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <title>mailprocessing reference</title>
+  <style type="text/css">code{white-space: pre;}</style>
+</head>
+<body>
+<div id="header">
+<h1 class="title">mailprocessing reference</h1>
+</div>
+<p>mailprocessing consists of two programs, imapproc and maildirproc. Both run a user defined piece of Python code to filter email.</p>
+<h1 id="imapproc">imapproc</h1>
+<p>imapproc continuously monitors one or more remote IMAP folders and processes mail in them according to user defined Python code in an <em>rc file</em>, a user defined piece of Python code. It also logs its actions to a log file. When there is no more mail to process, imaproc sleeps one second and then checks again. And so on. To make imapproc exit after the first filtering run, pass the --once option.</p>
+<p>imapproc keeps a list of folders in the IMAP account to process. At least least one IMAP folder must be specified for imapproc to run. Folder paths are always absolute. There are two ways to specify this information: by passing command line options, or by setting attributes on the processor object in the rc file. The rc file has priority over the command line options.</p>
+<p>The typical folder to run imapproc on is <code>INBOX</code> but you can of course specify multiple folders to process.</p>
+<p>The default location of the rc file for imapproc is <code>~/.mailprocessing/imap.rc</code> and the default location of its log file is <code>~/.mailprocessing/log-imap</code>.</p>
+<p>imapproc can optionally reload the rc file whenever a modification is detected (that is, the file's mtime has changed). This automatic reloading is turned off by default and can be enabled either by passing the <code>--auto-reload-rcfile</code> command line option or by setting the <code>auto_reload_rcfile</code> property to <code>True</code> on the processor object in the rc file.</p>
+<h1 id="maildirproc">maildirproc</h1>
+<p>maildirproc continuously monitors one or more <a href="http://en.wikipedia.org/wiki/Maildir">maildirs</a> and processes mail in them according to logic in an <em>rc file</em>, a user defined piece of Python code. It also logs its actions to a log file. By default maildirproc operates continuously: when there is no more mail to process, maildirproc sleeps one second and then checks again. And so on. To make maildirproc exit after the first filtering run, pass the --once option.</p>
+<p>maildirproc keeps a list of maildir directories to process. At least one maildir directory must be specified for maildirproc to run. A maildir directory path can be absolute (starting with a slash) or non-absolute. In the latter case, it will be considered relative to the <em>maildir base directory</em>, which defaults to the current working directory. There are two ways to specify this information: by passing command line options, or by setting attributes on the processor object in the rc file. The rc file has priority over the command line options.</p>
+<p>In a <a href="http://en.wikipedia.org/wiki/Maildir#Maildir.2B.2B">Maildir++</a>-style setup, the maildir base directory should typically be set to ~/Maildir and the maildir list should include the directory . to make maildirproc process the inbox.</p>
+<p>The default location of the rc file for maildirproc is <code>~/.mailprocessing/maildir.rc</code> and the default location of its log file is <code>~/.mailprocessing/log-maildir</code>.</p>
+<p>imapproc can optionally reload the rc file whenever a modification is detected (that is, the file's mtime has changed). This automatic reloading is turned off by default and can be enabled either by passing the <code>--auto-reload-rcfile</code> command line option or by setting the <code>auto_reload_rcfile</code> property to <code>True</code> on the processor object in the rc file.</p>
+<h1 id="command-line-options">Command line options</h1>
+<h2 id="common-options">Common options</h2>
+<p>maildirproc and imapproc both take the following common command line options:</p>
+<dl>
+<dt>--version</dt>
+<dd><p>show program's version number and exit</p>
+</dd>
+<dt>-h, --help</dt>
+<dd><p>show this help message and exit</p>
+</dd>
+<dt>--auto-reload-rcfile</dt>
+<dd><p>turn on automatic reloading of the rc file when it has been modified</p>
+</dd>
+<dt>--dry-run</dt>
+<dd><p>just log what should have been done; implies --once</p>
+</dd>
+<dt>-l FILE, --logfile=FILE</dt>
+<dd><p>send log to FILE instead of the default (~/.maildirproc/log)</p>
+</dd>
+<dt>--log-level=INTEGER</dt>
+<dd><p>only include log messages with this log level or lower; defaults to 1</p>
+</dd>
+<dt>--once</dt>
+<dd><p>only process the maildirs once and then exit; without this flag, maildirproc will scan the maildirs continuously</p>
+</dd>
+<dt>-r FILE, --rcfile=FILE</dt>
+<dd><p>use the given rc file instead of the default (~/.maildirproc/default.rc)</p>
+</dd>
+<dt>--test</dt>
+<dd><p>test mode; implies --dry-run, --once, --logfile=- and --verbose</p>
+</dd>
+<dt>-v, --verbose</dt>
+<dd><p>increase log level one step</p>
+</dd>
+</dl>
+<h2 id="maildirproc-specific-options">maildirproc specific options</h2>
+<p>The following options are specific to maildirproc:</p>
+<dl>
+<dt>-m DIRECTORY, --maildir=DIRECTORY</dt>
+<dd><p>add DIRECTORY to the set of maildir directories to process (can be passed multiple times); if DIRECTORY is relative, it will be considered relative to the maildir base directory</p>
+</dd>
+<dt>-b DIRECTORY, --maildir-base=DIRECTORY</dt>
+<dd><p>set maildir base directory; defaults to the current working directory</p>
+</dd>
+<dt>-p PREFIX, --folder-prefix</dt>
+<dd><p>prefix Maildir names with PREFIX; defaults to '.'</p>
+</dd>
+<dt>-s SEP, --folder-separator=SEP</dt>
+<dd><p>use sep as a folder separator in maildir names; defaults to '.'. List style folder names passed to create_folder() will be joined by this character, e.g. [&quot;github&quot;, &quot;jrosdahl&quot;, &quot;maildirproc&quot;] will become &quot;.github.jrosdahl.maildirproc.</p>
+</dd>
+</dl>
+<h2 id="imapproc-specific-options">imapproc specific options</h2>
+<dl>
+<dt>-C, --cache-headers</dt>
+<dd><p>Whether to cache the email headers retrieved from the IMAP server. By default caching is disabled.</p>
+</dd>
+<dt>--cache-file FILE</dt>
+<dd><p>Store the email header cache in FILE if caching is enabled. If this is not specified explicitly, ~/.maildirproc/<em>HOST</em>.cache will be used, where <em>HOST</em> is the IMAP server's host name passed set with the --host option.</p>
+</dd>
+<dt>-c CERT, --certfile</dt>
+<dd><p>Use SSL certificate file CERT to verify IMAP server's SSL certificate (only relevant for IMAPS)</p>
+</dd>
+<dt>-H HOST, --host</dt>
+<dd><p>Connect to IMAP server HOST. This option is mandatory</p>
+</dd>
+<dt>-i INTERVAL, --interval</dt>
+<dd><p>Scan IMAP folders for new email every INTERVAL seconds; defaults to 300; will be ignored if --once is specified as well</p>
+</dd>
+<dt>--folder-prefix PREFIX</dt>
+<dd><p>Prefix folder names with the string PREFIX. This is relevant for some IMAP servers that store all folders as subfolders of INBOX. imapproc will attempt to detect this situation, but this detection may not work with all server side IMAP implementations. If this is the case for your IMAP server, use this option to specify a prefix explicitly.</p>
+</dd>
+<dt>--folder-separator SEP</dt>
+<dd><p>Use SEP as a separator for folder hierarchies. By default, imapproc will determine the folder separator from the server's LIST response. This should work fine for most IMAP servers.</p>
+</dd>
+<dt>-p PW, --interval</dt>
+<dd><p>Use password PW to authenticate against IMAP server; since this will show up in the process list, this is mainly intended for debugging. Use --password-command otherwise. Either this option or --password-command is mandatory.</p>
+</dd>
+<dt>--password-command CMD</dt>
+<dd><p>Run command CMD and send use its output as the password to authenticate against the IMAP server with. This is the recommended approach for specifying the IMAP password. Either this option or --password is mandatory.</p>
+</dd>
+<dt>-P PORT --port</dt>
+<dd><p>IMAP port to use. Defaults to 143 if --use-ssl is not specified and 993 if it is.</p>
+</dd>
+<dt>-s --use-ssl</dt>
+<dd><p>Use SSL to connect to the IMAP server (default: no).</p>
+</dd>
+<dt>-U USER --user</dt>
+<dd><p>Log in to the IMAP server with user name USER. This option is mandatory.</p>
+</dd>
+<dt>--insecure</dt>
+<dd><p>Do no certificate validation when connecting to an SSL IMAP server (default: no). This means the certificate subject names will be ignored, as will any certificate authorities. Your connection will not be protected from active attackers.</p>
+</dd>
+</dl>
+<h1 id="configuration">Configuration</h1>
+<p>maildirproc's and imapproc's configuration, the <em>rc file</em>, is not a set of declarative rules. Instead, it is a simple <a href="http://www.python.org">Python</a> program that has access to a &quot;maildir processor&quot; object which produces mail objects. The mail processing logic is defined in terms of if/elif/else statements and actions are performed by calling methods on the mail objects.</p>
+<p>Maildir and IMAP specific functionality is implemented by the MaildirProcessor and ImapProcessor classes, respecitively.</p>
+<h2 id="the-mailprocessor-class">The MailProcessor class</h2>
+<p>Iteration over a MailProcessor instance yields Mail instances. imapproc and maildirproc will create a MailProcessor instance for you which is available as the global <strong>processor</strong> variable in the rc file's name space.</p>
+<h3 id="readable-and-writable-properties">Readable and writable properties</h3>
+<dl>
+<dt>auto_reload_rcfile</dt>
+<dd><p>Whether the rc file should be automatically reloaded when it has been modified. Assignment to this property overrides the corresponding command-line option.</p>
+</dd>
+<dt>maildir_base</dt>
+<dd><p>The base directory of maildirs. Assignment to this property overrides the corresponding command-line option. This property is specific to MaildirProcessor instances.</p>
+</dd>
+<dt>maildirs</dt>
+<dd><p>A list of maildirs (subdirectories of the maildir base directory). Assignment to this property overrides the corresponding command-line option. This property is specific to MaildirProcessor instances.</p>
+</dd>
+<dt>folders</dt>
+<dd><p>A list of IMAP folders. Assignment to this property overrides the corresponding command-line option. This property is specific to ImapProcessor instances.</p>
+</dd>
+</dl>
+<h3 id="methods">Methods</h3>
+<dl>
+<dt>create_folder(<em>folder</em>, <em>parents=True</em>, <em>prefix='.'</em>)</dt>
+<dd><p>Create folder <em>folder</em> (a string, or a list of namespace components). This method can safely be called for existing folders. If the folder exists already, the method will log that it exists and exit without trying to create it. For MaildirProcessor <em>folder</em> does not need to be on the same file system as the mail. If the <em>folder</em> path is relative, it will be considered relative to the maildir base directory. The boolean keyword argument <em>parents</em> governs whether parent folders should be created as well, e.g. if you create 'github.jrosdahl.maildirproc', 'github' and 'github.jrosdahl' will be created as well. This is the default behaviour. The <em>prefix</em> keyword argument specifies a prefix to prepend the folder name with. This defaults to the processors <em>prefix</em> attribute which is set via the --prefix command line attribute for MaildirProcessor instances.</p>
+</dd>
+</dl>
+<h3 id="writable-properties">Writable properties</h3>
+<dl>
+<dt>logfile</dt>
+<dd><p>Location of the log file. Assignment to this property overrides the corresponding command-line option.</p>
+</dd>
+</dl>
+<h2 id="the-mail-class">The Mail class</h2>
+<p>Indexing a <code>Mail</code> instance with a header name (a string) returns a <code>Header</code> instance. Example:</p>
+<pre><code>for mail in processor:
+  myheader = mail[&#39;From&#39;]</code></pre>
+<h3 id="readable-properties">Readable properties</h3>
+<dl>
+<dt>folder</dt>
+<dd><p>The IMAP folder in which the mail is situated. Only applicable for ImapProcessor.</p>
+</dd>
+<dt>maildir</dt>
+<dd><p>The maildir in which the mail is situated. Only applicable for MaildirProcessor.</p>
+</dd>
+<dt>path</dt>
+<dd><p>Full filesystem path to the mail. Only applicable for MaildirProcessor.</p>
+</dd>
+<dt>target</dt>
+<dd><p>A Target instance.</p>
+</dd>
+</dl>
+<h3 id="methods-1">Methods</h3>
+<dl>
+<dt>copy(<em>maildir</em>, <em>create=False</em>)</dt>
+<dd><p>Copy the mail to <em>maildir</em> (a string). <em>maildir</em> does not need to be on the same file system as the mail. If the <em>maildir</em> path is relative, it will be considered relative to the maildir base directory. If the optional <em>create</em> keyword argument is set to True, the folder (and its parent folders) will be created if it does not exist. By default non-existent folders are not created.</p>
+</dd>
+<dt>delete()</dt>
+<dd><p>Delete the mail.</p>
+</dd>
+<dt>forward(<em>addresses[, env_sender]</em>)</dt>
+<dd><p>Forward the mail to one or several e-mail addresses <strong>and delete the mail</strong>. <em>addresses</em> can be either a string or a list of strings. <em>env_sender</em> (optional) specifies which envelope sender address to use.</p>
+</dd>
+<dt>forward_copy(<em>addresses[, env_sender]</em>)</dt>
+<dd><p>Forward a copy of the mail to one or several e-mail addresses. <em>addresses</em> can be either a string or a list of strings. <em>env_sender</em> (optional) specifies which envelope sender address to use.</p>
+</dd>
+<dt>from_mailing_list(<em>list</em>)</dt>
+<dd><p>Check whether the mail originated from the mailing list <em>list</em> (a string). Currently, the headers Delivered-To, Mailing-List, X-BeenThere and X-Mailing-List are checked. Returns a boolean.</p>
+</dd>
+<dt>strict_mailing_list(<em>list</em>)</dt>
+<dd><p>Check whether the mail originated from the mailing list <em>list</em> (a string). It is a bit stricter than <code>from_mailing_list()</code> and only matches the content of typical mailing list headers, namely List-Archive, List-Help, List-ID, List-Post, List-Subscribe and X-Mailing-List.</p>
+</dd>
+<dt>is_seen()</dt>
+<dd><p>Returns True if the message has been seen by the user, False otherwise.</p>
+</dd>
+<dt>is_flagged()</dt>
+<dd><p>Returns True if the message has been flagged by the user, False otherwise.</p>
+</dd>
+<dt>move(<em>maildir</em>, <em>create=False</em>)</dt>
+<dd><p>Move the mail to <em>maildir</em> (a string). <em>maildir</em> <strong>must</strong> be on the same file system as the mail, otherwise nothing will happen and an error will be logged. For MaildirProcessor, a relative <em>maildir</em> path, will be considered relative to the maildir base directory. If the optional <em>create</em> keyword argument is set to True, the folder (and its parent folders) will be created if it does not exist. By default non-existent folders are not created.</p>
+</dd>
+</dl>
+<h2 id="the-header-class">The Header class</h2>
+<h3 id="methods-2">Methods</h3>
+<dl>
+<dt>contains(<em>case-insensitive-string</em>)</dt>
+<dd><p>Check whether <em>case-insensitive-string</em> is part of the header. Returns a boolean.</p>
+</dd>
+<dt>matches(<em>case-insensitive-regexp</em>)</dt>
+<dd><p>Check whether <em>case-insensitive-regexp</em> (with an implicit .* prefix) matches the header. Returns a boolean.</p>
+</dd>
+</dl>
+<h2 id="the-target-class">The Target class</h2>
+<h3 id="methods-3">Methods</h3>
+<dl>
+<dt>contains(<em>case-insensitive-string</em>)</dt>
+<dd><p>Check whether <em>case-insensitive-string</em> is part of the To or Cc header. Returns a boolean.</p>
+</dd>
+<dt>matches(<em>case-insensitive-regexp</em>)</dt>
+<dd><p>Check whether <em>case-insensitive-regexp</em> (with an implicit .* prefix) matches the To or Cc header. Returns a boolean.</p>
+</dd>
+</dl>
+<h1 id="examples">Examples</h1>
+<p>For some examples, see the <a href="examples/">examples</a> directory.</p>
+</body>
+</html>

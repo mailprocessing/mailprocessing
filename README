@@ -1,7 +1,7 @@
 mailprocessing -- maildir and IMAP processors
 
 GitHub: https://github.com/mailprocessing/mailprocessing
-Documentation: http://mailprocessing.github.io/mailprocessing
+Documentation: https://mailprocessing.github.io/mailprocessing
 
 maildirproc was written by Joel Rosdahl <joel@rosdahl.net> and is
 distributed under the terms of the GNU General Public Licence (see the

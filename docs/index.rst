@@ -21,9 +21,9 @@ server. Much like maildirproc it sorts, e.g. moves, copies and forwards
 email. It uses the same filter configuration mechanism as maildirproc: a
 Python script that hooks into maildirprocs processing code.
 
-maildirproc was written by `Joel Rosdahl <http://joel.rosdahl.net>`__
-<joel@rosdahl.net> and is distributed under the terms of the `GNU
-General Public Licence. <http://www.gnu.org/licenses/gpl.html>`__
+maildirproc was written by Joel Rosdahl <joel@rosdahl.net> and is distributed
+under the terms of the `GNU General Public Licence.
+<http://www.gnu.org/licenses/gpl.html>`__
 
 imapproc was written by `Johannes
 Grassler <http://btw23.de/johannes/>`__ <johannes@btw23.de> and is

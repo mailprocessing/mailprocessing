@@ -3,7 +3,7 @@
 # Saner quoting rules for M4
 CQ=echo 'changequote(,)' | cat -
 PANDOC_MAN=pandoc -s -f rst -t man --filter pandoc/delink.py
-PANDOC_HTML=pandoc -s -f rst -t html
+PANDOC_HTML=pandoc -s -f rst -t html --css mailprocessing.css
 
 # Generate manual page title from file name
 man_title = $(shell basename $1 | sed 's/\..*//' | tr '[:lower:]' '[:upper:]')

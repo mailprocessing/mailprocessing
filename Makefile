@@ -24,7 +24,7 @@ upload: all
 
 clean:
 	rm -rf maildirproc*-$(VERSION) build dist MANIFEST
-	rm -rf *.gz setup.py
+	rm -rf *.gz
 	find -name '*~' | xargs rm -f
 
 .PHONY: all clean docs

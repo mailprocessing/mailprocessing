@@ -1,8 +1,8 @@
 mailprocessing reference
 ========================
 
-mailprocessing consists of two programs, imapproc and maildirproc. Both run a
-user defined piece of Python code to filter email.
+mailprocessing consists of two programs: imapproc and maildirproc. Both run a
+user-defined piece of Python code to filter email.
 
 imapproc
 --------
@@ -22,12 +22,12 @@ Common options
 
 include(reference/options_common.rst)
 
-maildirproc specific options
+maildirproc-specific options
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 include(reference/options_maildirproc.rst)
 
-imapproc specific options
+imapproc-specific options
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 include(reference/options_imapproc.rst)
@@ -41,4 +41,3 @@ Examples
 --------
 
 For some examples, see the `examples <examples/>`__ directory.
-

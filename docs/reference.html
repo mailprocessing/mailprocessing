@@ -11,7 +11,7 @@
 <div id="header">
 <h1 class="title">mailprocessing reference</h1>
 </div>
-<p>mailprocessing consists of two programs, imapproc and maildirproc. Both run a user defined piece of Python code to filter email.</p>
+<p>mailprocessing consists of two programs: imapproc and maildirproc. Both run a user-defined piece of Python code to filter email.</p>
 <h1 id="imapproc">imapproc</h1>
 <p>imapproc continuously monitors one or more remote IMAP folders and processes mail in them according to user defined Python code in an <em>rc file</em>, a user defined piece of Python code. It also logs its actions to a log file. When there is no more mail to process, imaproc sleeps one second and then checks again. And so on. To make imapproc exit after the first filtering run, pass the --once option.</p>
 <p>imapproc keeps a list of folders in the IMAP account to process. At least least one IMAP folder must be specified for imapproc to run. Folder paths are always absolute. There are two ways to specify this information: by passing command line options, or by setting attributes on the processor object in the rc file. The rc file has priority over the command line options.</p>
@@ -59,7 +59,7 @@
 <dd><p>increase log level one step</p>
 </dd>
 </dl>
-<h2 id="maildirproc-specific-options">maildirproc specific options</h2>
+<h2 id="maildirproc-specific-options">maildirproc-specific options</h2>
 <p>The following options are specific to maildirproc:</p>
 <dl>
 <dt>-m DIRECTORY, --maildir=DIRECTORY</dt>
@@ -75,7 +75,7 @@
 <dd><p>use sep as a folder separator in maildir names; defaults to '.'. List style folder names passed to create_folder() will be joined by this character, e.g. [&quot;github&quot;, &quot;jrosdahl&quot;, &quot;maildirproc&quot;] will become &quot;.github.jrosdahl.maildirproc.</p>
 </dd>
 </dl>
-<h2 id="imapproc-specific-options">imapproc specific options</h2>
+<h2 id="imapproc-specific-options">imapproc-specific options</h2>
 <dl>
 <dt>-C, --cache-headers</dt>
 <dd><p>Whether to cache the email headers retrieved from the IMAP server. By default caching is disabled.</p>

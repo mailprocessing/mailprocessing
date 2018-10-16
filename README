@@ -1,6 +1,7 @@
 mailprocessing -- maildir and IMAP processors
 
-https://github.com/mailprocessing/mailprocessing
+GitHub: https://github.com/mailprocessing/mailprocessing
+Documentation: http://mailprocessing.github.io/mailprocessing
 
 maildirproc was written by Joel Rosdahl <joel@rosdahl.net> and is
 distributed under the terms of the GNU General Public Licence (see the
@@ -22,5 +23,5 @@ server. Much like maildirproc it sorts, e.g. moves, copies and forwards
 email. It uses the same filter configuration mechanism as maildirproc: a
 Python script that hooks into maildirprocs processing code.
 
-For more information, some documentation and examples, see the doc
+For more information, some documentation and examples, see the docs
 directory.

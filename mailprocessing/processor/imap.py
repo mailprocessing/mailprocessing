@@ -48,6 +48,8 @@ class ImapProcessor(MailProcessor):
     def __init__(self, *args, **kwargs):
         super(ImapProcessor, self).__init__(*args, **kwargs)
 
+        self.user = kwargs['user']
+        self.password = kwargs['password']
         self.cache_file = kwargs.get('cache_file', None)
         self.header_cache = {}
         self._folders = {}
@@ -55,53 +57,40 @@ class ImapProcessor(MailProcessor):
         self.selected = None
 
         self.interval = kwargs['interval']
+        self.host = kwargs['host']
+
         if kwargs['log_level'] > 2:
             imaplib.Debug = 1
 
         if kwargs['port']:
-            port = kwargs['port']
+            self.port = kwargs['port']
 
         if kwargs['use_ssl']:
             if not kwargs['port']:
-                port = 993
-            ssl_context = ssl.SSLContext(getattr(ssl, 'PROTOCOL_TLS', ssl.PROTOCOL_SSLv23))
+                self.port = 993
+            self.ssl_context = ssl.SSLContext(getattr(ssl, 'PROTOCOL_TLS', ssl.PROTOCOL_SSLv23))
             if kwargs['insecure']:
-                ssl_context.verify_mode = ssl.CERT_NONE
+                self.ssl_context.verify_mode = ssl.CERT_NONE
             else:
-                ssl_context.verify_mode = ssl.CERT_REQUIRED
-                ssl_context.check_hostname = True
+                self.ssl_context.verify_mode = ssl.CERT_REQUIRED
+                self.ssl_context.check_hostname = True
             if kwargs['certfile']:
-                ssl_context.load_cert_chain(kwargs['certfile'])
+                self.ssl_context.load_cert_chain(kwargs['certfile'])
             else:
-                ssl_context.load_default_certs()
-
-            try:
-                self.imap = imaplib.IMAP4_SSL(host=kwargs['host'],
-                                              port=port,
-                                              ssl_context=ssl_context)
-            except Exception as e:
-                self.fatal_error("Couldn't connect to IMAP server "
-                                 "imaps://%s:%d: %s" % ( kwargs['host'],
-                                                         port, e))
+                self.ssl_context.load_default_certs()
+            self.connect_ssl()
         else:
-            try:
-                if not kwargs['port']:
-                    port = 143
-                self.imap = imaplib.IMAP4(host=kwargs['host'], port=port)
-            except Exception as e:
-                self.fatal_error("Couldn't connect to IMAP server "
-                                 "imap://%s:%d: %s" % ( kwargs['host'],
-                                                        kwargs['port'], e))
+            self.ssl_context = None
+            if not kwargs['port']:
+                self.port = 143
+            else:
+                self.port=kwargs['port']
+            self.connect_plain()
 
         if 'dry_run' in kwargs and kwargs['dry_run'] is True:
             self._mail_class = DryRunImap
         else:
             self._mail_class = ImapMail
-
-        try:
-            self.imap.login(kwargs['user'], kwargs['password'])
-        except self.imap.error as e:
-            self.fatal_imap_error("Login to IMAP server", e)
 
         self.prefix = kwargs.get('folder_prefix', None)
         self.separator = kwargs.get('folder_separator', None)
@@ -117,6 +106,39 @@ class ImapProcessor(MailProcessor):
         if kwargs['folders'] != None:
             self.set_folders(kwargs['folders'])
 
+    def authenticate(self):
+        try:
+            self.imap.login(self.user, self.password)
+        except self.imap.error as e:
+            self.fatal_imap_error("Login to IMAP server failed", e)
+
+
+    def connect_plain(self):
+        try:
+            self.imap = imaplib.IMAP4(host=self.host, port=self.port)
+        except Exception as e:
+            self.fatal_error("Couldn't connect to IMAP server "
+                             "imap://%s:%d: %s" % ( self.host, self.port, e))
+        self.authenticate()
+
+
+    def connect_ssl(self, **kwargs):
+        try:
+            self.imap = imaplib.IMAP4_SSL(host=self.host,
+                                          port=self.port,
+                                          ssl_context=self.ssl_context)
+        except Exception as e:
+            self.fatal_error("couldn't connect to imap server "
+                             "imaps://%s:%d: %s" % ( self.host, self.port, e))
+        self.authenticate()
+
+
+    def reconnect(self):
+        self.imap.logout()
+        if self.ssl_context is None:
+            self.connect_plain()
+        else:
+            self.connect_ssl()
 
     def get_folders(self):
         return self._folders
@@ -327,6 +349,8 @@ class ImapProcessor(MailProcessor):
         file.
         """
 
+        self.log_debug ("Saving header cache to disk.")
+
         # Delete UIDs marked for deletion when the messages where deleted/moved
         for folder in self.cache_delete:
             for uid in self.cache_delete[folder]:
@@ -334,8 +358,9 @@ class ImapProcessor(MailProcessor):
 
         # Drop unserializable mail objects from header cache before saving.
         for folder in self.header_cache:
-            for uid in self.header_cache[folder]['uids']:
-                self.header_cache[folder]['uids'][uid].pop('obj')
+            if 'uids' in self.header_cache[folder]:
+              for uid in self.header_cache[folder]['uids']:
+                  self.header_cache[folder]['uids'][uid].pop('obj')
         try:
             f = open(self.cache_file, mode='w')
             cache = json.dump(cache, f)
@@ -343,6 +368,8 @@ class ImapProcessor(MailProcessor):
         except OSError as e:
             self.fatal_error("Couldn't save cache to "
                              "%s: %s" % (self.cache_file, e))
+
+        self.log_debug ("Header cache saved.")
 
     def _initialize_cache(self, folder):
         """
@@ -426,6 +453,9 @@ class ImapProcessor(MailProcessor):
             self.fatal_error("Couldn't select folder %s: %s / %s" % (folder,
                               status, data[0].decode('ascii')))
 
+        self.log_debug ("status: %s" % status)
+        self.log_debug ("data: %s" % data)
+
         v_string = self.imap.response('UIDVALIDITY')[1][0].decode('ascii')
         self.uidvalidity[folder] = v_string
 
@@ -468,6 +498,48 @@ class ImapProcessor(MailProcessor):
         else:
             self.prefix = ""
 
+    def batch_uids(self, uid_hash, batchsize=1000):
+      """
+      Divide large UID lists into batches.
+      """
+
+      cur = 0
+      batches = []
+      uids = list(uid_hash.keys())
+      print(len(uids))
+
+      while cur <= len(uids):
+        increment = min(len(uids) - (cur - 1), batchsize)
+        batches.append(uids[cur:cur + increment])
+        cur += increment
+
+      return batches
+
+
+    def get_flags(self, folder):
+      """
+      Get message flags for a folder.
+      """
+
+      for batch in self.batch_uids(self.header_cache[folder]['uids']):
+        ret_full = []
+        data_full = []
+
+        try:
+          self.select(folder)
+          self.log_debug("%d UIDs in cache" % len(self.header_cache[folder]['uids']))
+          uids = ",".join(batch)
+          ret, data = self.imap.uid('fetch', uids, "FLAGS")
+          ret_full.append(data)
+          data_full.extend(data)
+        except self.imap.error as e:
+            self.fatal_error(
+                "Could not retrieve message flags for folder {0}, UIDs {1}: {2}"
+                "{1}".format(folder, uids, e))
+
+        return (ret_full, data_full)
+
+
     def refresh_flags(self):
         """
         Refreshes message flags for all messages in header cache.
@@ -475,14 +547,15 @@ class ImapProcessor(MailProcessor):
 
         self.log_info("==> Updating message flags...")
         for folder in self.header_cache:
-            self.select(folder)
-            uids = ",".join(self.header_cache[folder]['uids'])
             try:
-                ret, data = self.imap.uid('fetch', uids, "FLAGS")
-            except self.imap.error as e:
-                self.fatal_error(
-                    "Error forwarding: Could not retrieve message flags for folder {0}: {1}"
-                    "{1}".format(folder, e))
+                ret, data = self.get_flags(folder)
+            except self.imap.abort:
+                self.log_error("IMAP connection aborted, reconnecting.")
+                # Reconnect if the connection has timed out due to the header
+                # cache update taking too long (may happen on mailboxes with
+                # lots of messages).
+                self.reconnect()
+                ret, data = self.get_flags(folder)
             for msg in data:
                 flags = []
                 flags_raw = imaplib.ParseFlags(msg)

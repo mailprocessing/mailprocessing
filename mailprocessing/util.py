@@ -42,6 +42,22 @@ def iso_8601_now():
         milliseconds,
         offset_to_timezone(time.altzone))
 
+def batch_list(to_batch, batchsize=1000):
+  """
+  Divide large lists. Returns a list of lists with batchsize or fewer items.
+  """
+
+  cur = 0
+  batches = []
+
+  while cur <= len(to_batch):
+    increment = min(len(to_batch) - (cur - 1), batchsize)
+    batches.append(to_batch[cur:cur + increment])
+    cur += increment
+
+  return batches
+
+
 
 def sha1sum(fp):
     sha_obj = hashlib.sha1()

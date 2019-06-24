@@ -32,6 +32,7 @@ import time
 
 from mailprocessing import signals
 
+from mailprocessing.util import batch_list
 from mailprocessing.util import iso_8601_now
 from mailprocessing.util import safe_write
 
@@ -498,36 +499,20 @@ class ImapProcessor(MailProcessor):
         else:
             self.prefix = ""
 
-    def batch_uids(self, uid_hash, batchsize=1000):
-      """
-      Divide large UID lists into batches.
-      """
-
-      cur = 0
-      batches = []
-      uids = list(uid_hash.keys())
-      print(len(uids))
-
-      while cur <= len(uids):
-        increment = min(len(uids) - (cur - 1), batchsize)
-        batches.append(uids[cur:cur + increment])
-        cur += increment
-
-      return batches
-
 
     def get_flags(self, folder):
       """
       Get message flags for a folder.
       """
+      self.log_debug("%d UIDs in cache" % len(self.header_cache[folder]['uids']))
 
-      for batch in self.batch_uids(self.header_cache[folder]['uids']):
+      for batch in batch_list(list(self.header_cache[folder]['uids'].keys())):
+        self.log_debug("%d UIDs in batch" % len(batch))
         ret_full = []
         data_full = []
 
         try:
           self.select(folder)
-          self.log_debug("%d UIDs in cache" % len(self.header_cache[folder]['uids']))
           uids = ",".join(batch)
           ret, data = self.imap.uid('fetch', uids, "FLAGS")
           ret_full.append(data)

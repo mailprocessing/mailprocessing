@@ -414,13 +414,22 @@ class ImapProcessor(MailProcessor):
 
 
            for i in range(0, len(data), 2):
-              payload = data[i]
-              uid_raw = data[i+1]
+              next_decoded = data[i+1].decode('ascii')
 
-              uid = re.search('UID (\d+)', uid_raw.decode('ascii')).group().split(" ")[1]
+              # The data we are looking for may be in data[i][0] or data[i+1],
+              # depending on the IMAP server. Let's find out where it is:
+
+              if next_decoded == ')':
+                  # Dovecot
+                  uid_raw = data[i][0].decode('ascii')
+
+              if 'UID' in next_decoded:
+                  # Groupwise
+                  uid_raw = next_decoded
+
+              uid = re.search('UID (\d+)', uid_raw).group().split(" ")[1]
 
               flags = []
-              flags_raw = imaplib.ParseFlags(data[i][0])
 
               for flag in flags_raw:
                    flags.append(flag.decode('ascii'))
@@ -454,7 +463,7 @@ class ImapProcessor(MailProcessor):
                   msgs[uid]['flags'] = flags
                   msgs[uid]['headers'] = headers
 
-           self.log_debug("==> Header download finished for for UIDs %s" % uid_list)
+        self.log_debug("==> Header download finished for for UIDs %s" % uid_list)
 
         return msgs
 
@@ -530,6 +539,7 @@ class ImapProcessor(MailProcessor):
                 cache[uid] = {}
                 cache[uid]['headers'] = msg_obj._headers
                 cache[uid]['flags'] = msg_obj.message_flags
+                cache[uid]['obj'] = msg_obj
         return cache
 
 

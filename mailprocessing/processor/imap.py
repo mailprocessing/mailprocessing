@@ -30,6 +30,10 @@ import re
 import sys
 import time
 
+from email import errors as email_errors
+from email import header as email_header
+from email import parser as email_parser
+
 from mailprocessing import signals
 
 from mailprocessing.util import batch_list
@@ -234,6 +238,7 @@ class ImapProcessor(MailProcessor):
         """
 
         self.select(folder)
+        self.log_debug("Listing messages in folder %s" % folder)
 
         try:
             ret, data = self.imap.uid('search', None, "ALL")
@@ -245,7 +250,11 @@ class ImapProcessor(MailProcessor):
                                                                               ret))
             return []
 
-        return data[0].decode('ascii').split()
+        messages = data[0].decode('ascii').split()
+
+        self.log_debug("UIDs in folder %s: %s" % (folder, ",".join(messages)))
+
+        return messages
 
 
     def __iter__(self):
@@ -284,7 +293,8 @@ class ImapProcessor(MailProcessor):
         This method updates the processor's header cache for all folders this
         processor is configured to process.
         """
-        self.log("Updating header cache...")
+
+        self.log_debug("==> Updating header cache...")
 
         if self.cache_file is not None:
             self._cache_headers_file()
@@ -372,21 +382,104 @@ class ImapProcessor(MailProcessor):
 
         self.log_debug ("Header cache saved.")
 
+
+    def _download_headers_batched(self, folder, uids):
+        """
+        This method downloads headers and flags for a list of message UIDs in a
+        batched manner. It returns a dict of messages keyed by UID upon successful
+        fetch and will fail hard otherwise. Entries in the dictionary returned will
+        have a 'flags' and 'headers' key.
+        """
+
+        msgs = {}
+
+        for batch in batch_list(uids):
+           uid_list = ",".join(uids)
+
+           self.log_debug("==> Downloading headers for UIDs %s" % uid_list)
+
+           try:
+              self.select(folder)
+              ret, data = self.imap.uid('fetch', uid_list,
+                                        "(FLAGS BODY.PEEK[HEADER])")
+           except self.imap.error as e:
+              # Anything imaplib raises an exception for is fatal here.
+              self.fatal_error("Error retrieving headers for message "
+                               "UIDs %s: %s" % (",".join(uid_list), e))
+
+           if ret != 'OK':
+              self.fatal_error(
+                  "Error: Header retrieval failed with status "
+                   "%s for messages: %s" % (ret, ",".join(uid_list)))
+
+
+           for i in range(0, len(data), 2):
+              payload = data[i]
+              uid_raw = data[i+1]
+
+              uid = re.search('UID (\d+)', uid_raw.decode('ascii')).group().split(" ")[1]
+
+              flags = []
+              flags_raw = imaplib.ParseFlags(data[i][0])
+
+              for flag in flags_raw:
+                   flags.append(flag.decode('ascii'))
+
+
+              headers_raw = email_parser.Parser().parsestr(data[i][1].decode('ascii',
+                                                                             'ignore'),
+                                                                              headersonly=True)
+              headers = {}
+              for name in headers_raw.keys():
+                  value_parts = []
+                  for header in headers_raw.get_all(name, []):
+                      try:
+                          for (s, c) in email_header.decode_header(header):
+                              # email.header.decode_header in Python 3.x may
+                              # return either [(str, None)] or [(bytes,
+                              # None), ..., (bytes, encoding)]. We must
+                              # compensate for this.
+                              if not isinstance(s, str):
+                                      s = s.decode(c if c else "ascii")
+                              value_parts.append(s)
+                      except (email_errors.HeaderParseError, LookupError,
+                                      ValueError):
+                              self._processor.log_error(
+                                      "Error: Could not decode header {0} in message "
+                                      "UID {1}".format(ascii(header), self.uid))
+                              value_parts.append(header)
+                  headers[name.lower()] = " ".join(value_parts)
+
+                  msgs[uid] = {}
+                  msgs[uid]['flags'] = flags
+                  msgs[uid]['headers'] = headers
+
+           self.log_debug("==> Header download finished for for UIDs %s" % uid_list)
+
+        return msgs
+
+
     def _initialize_cache(self, folder):
         """
         This method initializes a cache data structure for a given folder.
         """
         cache = {}
-        for message in self.list_messages(folder):
+        uids = self.list_messages(folder)
+        messages = self._download_headers_batched(folder, uids)
+
+        for message_uid in uids:
             if signals.signal_received is not None:
                 self.clean_exit()
             msg_obj = self._mail_class(self, folder=folder,
-                                       uid=message)
-            cache[message] = {}
-            cache[message]['headers'] = msg_obj._headers
-            cache[message]['flags'] = msg_obj.message_flags
-            cache[message]['obj'] = msg_obj
+                                       uid=message_uid,
+                                       headers=messages[message_uid]['headers'],
+                                       flags=messages[message_uid]['flags'])
+            cache[message_uid] = {}
+            cache[message_uid]['headers'] = msg_obj._headers
+            cache[message_uid]['flags'] = msg_obj.message_flags
+            cache[message_uid]['obj'] = msg_obj
         return cache
+
 
     def _update_cache(self, folder, cache):
         """
@@ -395,7 +488,11 @@ class ImapProcessor(MailProcessor):
         added.
         """
 
+        self.log_debug("Updating cache")
+
         message_list = self.list_messages(folder)
+        uids = self.list_messages(folder)
+        uids_download = []
 
 
         # Remove stale cache entries
@@ -416,14 +513,25 @@ class ImapProcessor(MailProcessor):
                                                  uid=message,
                                                  headers=cached_headers,
                                                  flags=cached_flags)
+                cache[message]['obj'] = msg_obj
+
             else:
+                uids_download.append(message)
+
+        self.log_debug("Cache miss for the following UIDs: %s" % ",".join(uids_download))
+
+        if len(uids_download) != 0:
+            messages = self._download_headers_batched(folder, uids_download)
+            for uid in uids_download:
                 msg_obj = self._mail_class(self, folder=folder,
-                                           uid=message)
-                cache[message] = {}
-                cache[message]['headers'] = msg_obj._headers
-                cache[message]['flags'] = msg_obj.message_flags
-            cache[message]['obj'] = msg_obj
+                                                 uid=message,
+                                                 headers=messages[uid]['headers'],
+                                                 flags=messages[uid]['flags'])
+                cache[uid] = {}
+                cache[uid]['headers'] = msg_obj._headers
+                cache[uid]['flags'] = msg_obj.message_flags
         return cache
+
 
     def _uidvalidity(self, folder):
         """
@@ -555,6 +663,7 @@ class ImapProcessor(MailProcessor):
                 self.header_cache[folder]['uids'][uid]['flags'] = flags
                 self.header_cache[folder]['uids'][uid]['obj'].message_flags = flags
         self.log_info("==> Message flags updated.")
+
 
     def _status(self, folder):
         """

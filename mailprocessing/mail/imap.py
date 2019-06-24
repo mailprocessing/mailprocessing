@@ -178,7 +178,7 @@ class ImapMail(MailBase):
         try:
             ret, msg = self._processor.imap.uid('fetch', self.uid, "RFC822")
         except self._processor.imap.error as e:
-						# Fail soft, since we haven't changed any mailbox state or forwarded
+            # Fail soft, since we haven't changed any mailbox state or forwarded
             # anything, yet. Hence we might as well retry later.
             self._processor.log_imap_error(
                 "Error forwarding: Could not retrieve message UID {0}: {1}"

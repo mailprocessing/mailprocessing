@@ -238,9 +238,9 @@ class ImapMail(MailBase):
         seen_status = '\Seen' in self.message_flags
 
         if seen_status:
-            self._processor.log_debug("... Mail is seen")
+            self._processor.log_debug("... Mail is seen (%s)" % self.message_flags)
         else:
-            self._processor.log_debug("... Mail is not seen")
+            self._processor.log_debug("... Mail is not seen (%s)" % self.message_flags)
 
         return seen_status
 
@@ -337,6 +337,7 @@ class ImapMail(MailBase):
         """
         self._processor.log("UID:       {0}".format(self.uid))
         self._processor.log("Folder:    {0}".format(self.folder))
+        self._processor.log("Message Flags:    {0}".format(self.message_flags))
         for name in "Message-ID Subject Date From To Cc".split():
             self._processor.log(
                 "{0:<11} {1}".format(name + ":", ascii(self[name])))

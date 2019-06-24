@@ -430,6 +430,7 @@ class ImapProcessor(MailProcessor):
               uid = re.search('UID (\d+)', uid_raw).group().split(" ")[1]
 
               flags = []
+              flags_raw = imaplib.ParseFlags(data[i][0])
 
               for flag in flags_raw:
                    flags.append(flag.decode('ascii'))

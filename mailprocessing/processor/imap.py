@@ -456,7 +456,7 @@ class ImapProcessor(MailProcessor):
                                       ValueError):
                               self._processor.log_error(
                                       "Error: Could not decode header {0} in message "
-                                      "UID {1}".format(ascii(header), self.uid))
+                                      "UID {1}".format(ascii(header), uid))
                               value_parts.append(header)
                   headers[name.lower()] = " ".join(value_parts)
 
@@ -534,7 +534,7 @@ class ImapProcessor(MailProcessor):
             messages = self._download_headers_batched(folder, uids_download)
             for uid in uids_download:
                 msg_obj = self._mail_class(self, folder=folder,
-                                                 uid=message,
+                                                 uid=uid,
                                                  headers=messages[uid]['headers'],
                                                  flags=messages[uid]['flags'])
                 cache[uid] = {}

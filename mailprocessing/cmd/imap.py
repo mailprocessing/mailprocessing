@@ -186,10 +186,12 @@ def main():
         "--header-batchsize",
         type="int",
         default=200,
+        metavar="BATCHSIZE",
         help="Batch size to use for downloading message headers")
     parser.add_option(
         "--flag-batchsize",
         type="int",
+        metavar="BATCHSIZE",
         default=200,
         help="Batch size to use for downloading message flags")
     parser.add_option(

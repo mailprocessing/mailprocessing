@@ -14,6 +14,16 @@
 -i INTERVAL, --interval
     Scan IMAP folders for new email every INTERVAL seconds; defaults to
     300; will be ignored if --once is specified as well
+--flag-batchsize SIZE
+    Batch size to use when fetching message flags. Defaults to 200. When there
+    are more messages to fetch flags for, multiple FETCH commands will be
+    issued, each with SIZE or fewer messages. Reduce this value if you
+    experience session expiry during message flag retrieval.
+--header-batchsize SIZE
+    Batch size to use when fetching message headers. Defaults to 200. When
+    there are more messages to fetch headers for, multiple FETCH commands will
+    be issued, each with SIZE or fewer messages. Reduce this value if you
+    experience session expiry during message header retrieval.
 --folder-prefix PREFIX
     Prefix folder names with the string PREFIX. This is relevant for
     some IMAP servers that store all folders as subfolders of INBOX.

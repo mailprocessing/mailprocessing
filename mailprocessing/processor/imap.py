@@ -60,6 +60,8 @@ class ImapProcessor(MailProcessor):
         self._folders = {}
         self.uidvalidity = {}
         self.selected = None
+        self.flag_batchsize = kwargs.get('flag_batchsize')
+        self.header_batchsize = kwargs.get('header_batchsize')
 
         self.interval = kwargs['interval']
         self.host = kwargs['host']
@@ -393,7 +395,7 @@ class ImapProcessor(MailProcessor):
 
         msgs = {}
 
-        for batch in batch_list(uids):
+        for batch in batch_list(uids, self.header_batchsize):
            uid_list = ",".join(uids)
 
            self.log_debug("==> Downloading headers for UIDs %s" % uid_list)
@@ -625,7 +627,8 @@ class ImapProcessor(MailProcessor):
       """
       self.log_debug("%d UIDs in cache" % len(self.header_cache[folder]['uids']))
 
-      for batch in batch_list(list(self.header_cache[folder]['uids'].keys())):
+      uid_list = list(self.header_cache[folder]['uids'].keys())
+      for batch in batch_list(uid_list, self.flag_batchsize):
         self.log_debug("%d UIDs in batch" % len(batch))
         ret_full = []
         data_full = []

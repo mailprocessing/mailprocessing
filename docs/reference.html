@@ -1,17 +1,25 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta charset="utf-8" />
   <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <title>mailprocessing reference</title>
-  <style type="text/css">code{white-space: pre;}</style>
-  <link rel="stylesheet" href="mailprocessing.css" type="text/css" />
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <link rel="stylesheet" href="mailprocessing.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
 </head>
 <body>
-<div id="header">
+<header id="title-block-header">
 <h1 class="title">mailprocessing reference</h1>
-</div>
+</header>
 <p>mailprocessing consists of two programs: imapproc and maildirproc. Both run a user-defined piece of Python code to filter email.</p>
 <h1 id="imapproc">imapproc</h1>
 <p>imapproc continuously monitors one or more remote IMAP folders and processes mail in them according to user defined Python code in an <em>rc file</em>, a user defined piece of Python code. It also logs its actions to a log file. When there is no more mail to process, imaproc sleeps one second and then checks again. And so on. To make imapproc exit after the first filtering run, pass the --once option.</p>
@@ -73,7 +81,7 @@
 <dd><p>prefix Maildir names with PREFIX; defaults to '.'</p>
 </dd>
 <dt>-s SEP, --folder-separator=SEP</dt>
-<dd><p>use sep as a folder separator in maildir names; defaults to '.'. List style folder names passed to create_folder() will be joined by this character, e.g. [&quot;github&quot;, &quot;jrosdahl&quot;, &quot;maildirproc&quot;] will become &quot;.github.jrosdahl.maildirproc.</p>
+<dd><p>use sep as a folder separator in maildir names; defaults to '.'. List style folder names passed to create_folder() will be joined by this character, e.g. ["github", "jrosdahl", "maildirproc"] will become ".github.jrosdahl.maildirproc.</p>
 </dd>
 </dl>
 <h2 id="imapproc-specific-options">imapproc-specific options</h2>
@@ -92,6 +100,12 @@
 </dd>
 <dt>-i INTERVAL, --interval</dt>
 <dd><p>Scan IMAP folders for new email every INTERVAL seconds; defaults to 300; will be ignored if --once is specified as well</p>
+</dd>
+<dt>--flag-batchsize SIZE</dt>
+<dd><p>Batch size to use when fetching message flags. Defaults to 200. When there are more messages to fetch flags for, multiple FETCH commands will be issued, each with SIZE or fewer messages. Reduce this value if you experience session expiry during message flag retrieval.</p>
+</dd>
+<dt>--header-batchsize SIZE</dt>
+<dd><p>Batch size to use when fetching message headers. Defaults to 200. When there are more messages to fetch headers for, multiple FETCH commands will be issued, each with SIZE or fewer messages. Reduce this value if you experience session expiry during message header retrieval.</p>
 </dd>
 <dt>--folder-prefix PREFIX</dt>
 <dd><p>Prefix folder names with the string PREFIX. This is relevant for some IMAP servers that store all folders as subfolders of INBOX. imapproc will attempt to detect this situation, but this detection may not work with all server side IMAP implementations. If this is the case for your IMAP server, use this option to specify a prefix explicitly.</p>
@@ -119,7 +133,7 @@
 </dd>
 </dl>
 <h1 id="configuration">Configuration</h1>
-<p>maildirproc's and imapproc's configuration, the <em>rc file</em>, is not a set of declarative rules. Instead, it is a simple <a href="http://www.python.org">Python</a> program that has access to a &quot;maildir processor&quot; object which produces mail objects. The mail processing logic is defined in terms of if/elif/else statements and actions are performed by calling methods on the mail objects.</p>
+<p>maildirproc's and imapproc's configuration, the <em>rc file</em>, is not a set of declarative rules. Instead, it is a simple <a href="http://www.python.org">Python</a> program that has access to a "maildir processor" object which produces mail objects. The mail processing logic is defined in terms of if/elif/else statements and actions are performed by calling methods on the mail objects.</p>
 <p>Maildir and IMAP specific functionality is implemented by the MaildirProcessor and ImapProcessor classes, respecitively.</p>
 <h2 id="the-mailprocessor-class">The MailProcessor class</h2>
 <p>Iteration over a MailProcessor instance yields Mail instances. imapproc and maildirproc will create a MailProcessor instance for you which is available as the global <strong>processor</strong> variable in the rc file's name space.</p>

@@ -183,6 +183,16 @@ def main():
         metavar="SEP",
         help="Name space separator for IMAP folder names")
     parser.add_option(
+        "--header-batchsize",
+        type="int",
+        default=200,
+        help="Batch size to use for downloading message headers")
+    parser.add_option(
+        "--flag-batchsize",
+        type="int",
+        default=200,
+        help="Batch size to use for downloading message flags")
+    parser.add_option(
         "-u",
         "--user",
         type="string",
@@ -266,8 +276,9 @@ def main():
     processor_kwargs["run_once"] = options.once
 
     for opt in ("auto_reload_rcfile", "certfile", "dry_run", "folders",
-                "folder_prefix", "folder_separator", "host", "interval",
-                "port", "user", "use_ssl", "insecure", "verbosity"):
+                "folder_prefix", "folder_separator", "header_batchsize",
+                "flag_batchsize", "host", "interval", "port", "user",
+                "use_ssl", "insecure", "verbosity"):
         processor_kwargs[opt] = options.__dict__[opt]
 
     if options.cache_headers:

@@ -1,12 +1,20 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta charset="utf-8" />
   <meta name="generator" content="pandoc" />
-  <title></title>
-  <style type="text/css">code{white-space: pre;}</style>
-  <link rel="stylesheet" href="mailprocessing.css" type="text/css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Untitled</title>
+  <style type="text/css">
+      code{white-space: pre-wrap;}
+      span.smallcaps{font-variant: small-caps;}
+      span.underline{text-decoration: underline;}
+      div.column{display: inline-block; vertical-align: top; width: 50%;}
+  </style>
+  <link rel="stylesheet" href="mailprocessing.css" />
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
 </head>
 <body>
 <div id="content">
@@ -29,13 +37,13 @@
 </ul>
 <p><strong>Source code repository</strong></p>
 <ul>
-<li><a href="https://github.com/mailprocessing/mailprocessing" class="uri">https://github.com/mailprocessing/mailprocessing</a> (public <a href="http://git-scm.com">Git</a> repository)</li>
+<li><a href="https://github.com/mailprocessing/mailprocessing">https://github.com/mailprocessing/mailprocessing</a> (public <a href="http://git-scm.com">Git</a> repository)</li>
 </ul>
 <p><strong>Background</strong></p>
 <p>For a long time, I used <a href="http://www.procmail.org">procmail</a> to sort my mail, but I was not entirely happy with its configuration language. I subscribe to a lot of mailing lists and I use several e-mail addresses, so the .procmailrc file was quite large and complex and I found it hard to express mail sorting rules elegantly. I wanted to be able to define and use functions, data structures, if statements, loops and other imperative language constructs and felt that procmail's rule-based vocabulary was limiting. I thought about writing a program to generate the configuration from some higher-level rules, but I never got to it. I also didn't feel comfortable with e-mail sorting being part of the delivery chain. (Granted, procmail can be used in other setups too.)</p>
 <p>Then one day I stumbled upon a program called <a href="http://www.lysator.liu.se/~jc/maildird.html">Maildird</a>, written by Jörgen Cederlöf, and I liked its basic design:</p>
 <div class="quote">
-<p>&quot;Maildird calmly waits until the mail is delivered, notices that a new mail has arrived in the Maildir it monitors, writes something useful in the log [...] and moves the mail safely to the correct Maildir.&quot;</p>
+<p>"Maildird calmly waits until the mail is delivered, notices that a new mail has arrived in the Maildir it monitors, writes something useful in the log [...] and moves the mail safely to the correct Maildir."</p>
 </div>
 <p>Since Maildird was not configurable (at least not at the time) in the way I wanted, I decided to write my own program that worked somewhat similarly but with a configuration style that suited me. If you like it, you are welcome to use (or improve) it too.</p>
 <p><strong>Documentation</strong></p>
@@ -50,12 +58,12 @@
 <div class="code-example">
 <p>maildirproc --once -r foo.rc -b . -m Maildir</p>
 </div>
-to apply the program in foo.rc once on a maildir directory called Maildir in the current directory.</li>
+<p>to apply the program in foo.rc once on a maildir directory called Maildir in the current directory.</p></li>
 <li><p>By cron: Put a row like</p>
 <div class="code-example">
 <p>* * * * * maildirproc --once</p>
 </div>
-in your crontab to run maildirproc each minute (using the default RC file ~/.maildirproc/default.rc).</li>
+<p>in your crontab to run maildirproc each minute (using the default RC file ~/.maildirproc/default.rc).</p></li>
 <li>As a long-running process: Just start maildirproc (without the --once flag).</li>
 <li>Using some service supervision framework, for example <a href="http://smarden.org/runit/">runit</a>.</li>
 </ul>

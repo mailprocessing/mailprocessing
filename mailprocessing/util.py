@@ -17,7 +17,9 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301, USA.
 
+import fcntl
 import hashlib
+import os
 import sys
 import time
 
@@ -42,6 +44,7 @@ def iso_8601_now():
         milliseconds,
         offset_to_timezone(time.altzone))
 
+
 def batch_list(to_batch, batchsize=1000):
   """
   Divide large lists. Returns a list of lists with batchsize or fewer items.
@@ -58,7 +61,6 @@ def batch_list(to_batch, batchsize=1000):
   return batches
 
 
-
 def sha1sum(fp):
     sha_obj = hashlib.sha1()
     while True:
@@ -67,6 +69,30 @@ def sha1sum(fp):
             break
         sha_obj.update(data)
     return sha_obj.hexdigest()
+
+
+def write_pidfile(pidfile):
+    """
+    Write and acquire a PID file this process' PID is recorded
+    in pidfile must be a writeable, seekable file descriptor
+    i.e. it must point to a regular file we've got write
+    access to.
+    """
+
+    lock_acquired = False
+
+    while not lock_acquired:
+        try:
+            fcntl.flock(pidfile, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            lock_acquired = True
+        except OSError as e:
+            print("Couldn't acquire lock on pid file %s, sleeping for 5s" % pidfile.name, file=sys.stderr)
+        time.sleep(5)
+
+    pidfile.seek(0)
+    pidfile.truncate()
+    print(os.getpid(), file=pidfile)
+    pidfile.flush()
 
 
 def safe_write(fp, s):

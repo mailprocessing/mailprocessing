@@ -46,6 +46,13 @@ This automatic reloading is turned off by default and can be enabled
 either by passing the \f[C]\-\-auto\-reload\-rcfile\f[R] command line
 option or by setting the \f[C]auto_reload_rcfile\f[R] property to
 \f[C]True\f[R] on the processor object in the rc file.
+.PP
+imapproc writes its process ID to
+\f[C]\[ti]/.mailprocessing/imapproc.pid\f[R] and uses that PID file for
+locking as well.
+If you want to run multiple imapproc instances in parallel, use the
+\f[C]\-\-pidfile\f[R] and \f[C]\-\-logfile\f[R] options to give each
+process a different PID and log file.
 .SH OPTIONS
 .SS Common options
 .PP
@@ -65,7 +72,10 @@ turn on automatic reloading of the rc file when it has been modified
 just log what should have been done; implies \-\-once
 .TP
 .B \-l FILE, \-\-logfile=FILE
-send log to FILE instead of the default (\[ti]/.maildirproc/log)
+send log to FILE instead of the default (\[ti]/.maildirproc/log\-imap
+for imapproc and \[ti]/.maildirproc/log\-maildir for maildirproc).
+If you are running multiple maildirproc or imapproc instances, you must
+specify a dedicated log file for each of these.
 .TP
 .B \-\-log\-level=INTEGER
 only include log messages with this log level or lower; defaults to 1
@@ -145,6 +155,13 @@ Use password PW to authenticate against IMAP server; since this will
 show up in the process list, this is mainly intended for debugging.
 Use \-\-password\-command otherwise.
 Either this option or \-\-password\-command is mandatory.
+.TP
+.B \-\-pidfile FILE
+Write the imapproc process\[aq] PID to FILE rather than the default
+location \[ti]/.imapproc/imapproc.pid.
+This file is also used for locking so if you need to run multiple
+different imapproc processes in parallel you need to specify different
+PID and log files for these.
 .TP
 .B \-\-password\-command CMD
 Run command CMD and send use its output as the password to authenticate

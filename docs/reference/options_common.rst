@@ -10,7 +10,10 @@ options:
 --dry-run
     just log what should have been done; implies --once
 -l FILE, --logfile=FILE
-    send log to FILE instead of the default (~/.maildirproc/log)
+    send log to FILE instead of the default (~/.maildirproc/log-imap for
+    imapproc and ~/.maildirproc/log-maildir for maildirproc). If you are
+    running multiple maildirproc or imapproc instances, you must specify a
+    dedicated log file for each of these.
 --log-level=INTEGER
     only include log messages with this log level or lower; defaults to
     1

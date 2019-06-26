@@ -34,11 +34,13 @@ from optparse import OptionParser
 from mailprocessing.processor.imap import ImapProcessor
 
 from mailprocessing.util import iso_8601_now
+from mailprocessing.util import write_pidfile
 
 def main():
     imapproc_directory = "~/.mailprocessing"
     default_rcfile_location = os.path.join(imapproc_directory, "imap.rc")
     default_logfile_location = os.path.join(imapproc_directory, "log-imap")
+    default_pidfile_location = os.path.join(imapproc_directory, "imapproc.pid")
 
     if not os.path.isdir(os.path.expanduser(imapproc_directory)):
         os.mkdir(os.path.expanduser(imapproc_directory))
@@ -210,6 +212,12 @@ def main():
         action="store_true",
         default=False,
         help="Skip SSL certificate validation when connecting to IMAP server (unsafe).")
+    parser.add_option(
+        "--pidfile",
+        type="string",
+        default=default_pidfile_location,
+        metavar="FILE",
+        help="File to write imapproc process ID to")
 
     (options, _) = parser.parse_args(sys.argv[1:])
 
@@ -270,6 +278,21 @@ def main():
             "a",
             encoding=locale.getpreferredencoding(),
             errors="backslashreplace")
+
+    pidfile = os.path.expanduser(options.pidfile)
+
+    if not os.path.isabs(pidfile):
+        print("Error: pid file %s is not an absolute path." % pidfile,
+              file=sys.stderr)
+        sys.exit(1)
+
+    try:
+        pidfile_fd = open(pidfile, 'a')
+    except IOError as e:
+        print("Couldn't open pid file %s for writing: %s" % (pidfile, e),
+              file=sys.stderr)
+
+    write_pidfile(pidfile_fd)
 
     processor_kwargs["log_level"] = options.log_level + options.verbosity
 

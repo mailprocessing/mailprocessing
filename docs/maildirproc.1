@@ -69,7 +69,10 @@ turn on automatic reloading of the rc file when it has been modified
 just log what should have been done; implies \-\-once
 .TP
 .B \-l FILE, \-\-logfile=FILE
-send log to FILE instead of the default (\[ti]/.maildirproc/log)
+send log to FILE instead of the default (\[ti]/.maildirproc/log\-imap
+for imapproc and \[ti]/.maildirproc/log\-maildir for maildirproc).
+If you are running multiple maildirproc or imapproc instances, you must
+specify a dedicated log file for each of these.
 .TP
 .B \-\-log\-level=INTEGER
 only include log messages with this log level or lower; defaults to 1

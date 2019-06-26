@@ -40,6 +40,11 @@
     show up in the process list, this is mainly intended for debugging.
     Use --password-command otherwise. Either this option or
     --password-command is mandatory.
+--pidfile FILE
+    Write the imapproc process' PID to FILE rather than the default location
+    ~/.imapproc/imapproc.pid. This file is also used for locking so if you need
+    to run multiple different imapproc processes in parallel you need to
+    specify different PID and log files for these.
 --password-command CMD
     Run command CMD and send use its output as the password to
     authenticate against the IMAP server with. This is the recommended

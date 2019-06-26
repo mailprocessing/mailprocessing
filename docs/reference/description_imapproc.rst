@@ -23,3 +23,8 @@ imapproc can optionally reload the rc file whenever a modification is detected
 by default and can be enabled either by passing the ``--auto-reload-rcfile``
 command line option or by setting the ``auto_reload_rcfile`` property to
 ``True`` on the processor object in the rc file.
+
+imapproc writes its process ID to ``~/.mailprocessing/imapproc.pid`` and uses
+that PID file for locking as well. If you want to run multiple imapproc
+instances in parallel, use the ``--pidfile`` and ``--logfile`` options to give
+each process a different PID and log file.

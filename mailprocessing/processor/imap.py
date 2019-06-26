@@ -385,7 +385,7 @@ class ImapProcessor(MailProcessor):
         for folder in self.cache_delete:
             for uid in self.cache_delete[folder]:
                 self.header_cache[folder]['uids'].pop(uid)
-                self.cache_delete[folder].pop(uid)
+            self.cache_delete[folder] = []
 
         # Drop unserializable mail objects from header cache before saving.
         for folder in self.header_cache:

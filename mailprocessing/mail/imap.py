@@ -72,7 +72,7 @@ class ImapMail(MailBase):
         be joined by the IMAP server's separator character).
         """
 
-        if signals.signal_received is not None:
+        if signals.terminate():
             self.processor.clean_exit()
 
         # Make sure the folder name is prepended with the IMAP server's prefix
@@ -123,7 +123,7 @@ class ImapMail(MailBase):
         Deletes the message.
         """
 
-        if signals.signal_received is not None:
+        if signals.terminate():
             self.processor.clean_exit()
 
         # Make sure we have this message's folder selected (UIDs should be
@@ -152,7 +152,7 @@ class ImapMail(MailBase):
         will be deleted.
         """
 
-        if signals.signal_received is not None:
+        if signals.terminate():
             self.processor.clean_exit()
 
         # Make sure we have this message's folder selected (UIDs should be
@@ -253,7 +253,7 @@ class ImapMail(MailBase):
         be joined by the IMAP server's separator character).
         """
 
-        if signals.signal_received is not None:
+        if signals.terminate():
             self.processor.clean_exit()
 
         # Make sure the folder name is prepended with the IMAP server's prefix

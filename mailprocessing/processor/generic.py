@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301, USA.
 
+import fcntl
 import hashlib
 import locale
 import os
@@ -24,6 +25,8 @@ import random
 import socket
 import sys
 import time
+
+from mailprocessing import signals
 
 from mailprocessing.util import iso_8601_now
 from mailprocessing.util import safe_write
@@ -65,14 +68,32 @@ class MailProcessor(object):
         get_auto_reload_rcfile, set_auto_reload_rcfile)
 
     def set_logfile(self, path_or_fp):
-        if isinstance(path_or_fp, basestring):
+        if isinstance(path_or_fp, str):
             self._log_fp = open(
                 os.path.expanduser(path_or_fp),
                 "a",
                 errors="backslashreplace")
+            lock_acquired = False
+            while not lock_acquired:
+                try:
+                    fcntl.flock(self._log_fp, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                    lock_acquired = True
+                except OSError as e:
+                    print("Couldn't acquire lock on log file %s, sleeping "
+                          "for 5s" % self._log_fp.name, file=sys.stderr)
+                    time.sleep(5)
         else:
             self._log_fp = path_or_fp
+
     logfile = property(fset=set_logfile)
+
+    def reopen_logfile(self):
+        # log file is a stream, so no need to reopen
+        if self._log_fp.fileno() < 3:
+            return
+        filename = self._log_fp.name
+        self._log_fp.close()
+        self.set_logfile(filename)
 
     @property
     def rcfile(self):
@@ -131,9 +152,13 @@ class MailProcessor(object):
             self._log_fp.flush()
 
     def log_debug(self, text):
+        if signals.hup_received():
+            self.reopen_logfile()
         self.log(text, 2)
 
     def log_error(self, text):
+        if signals.hup_received():
+            self.reopen_logfile()
         try:
             self.log(text, 0)
         except:
@@ -142,9 +167,13 @@ class MailProcessor(object):
             safe_write(sys.stderr, text)
 
     def log_info(self, text):
+        if signals.hup_received():
+            self.reopen_logfile()
         self.log(text, 1)
 
     def fatal_error(self, text):
+        if signals.hup_received():
+            self.reopen_logfile()
         try:
             self.log_error(text)
         except:

@@ -296,7 +296,7 @@ class ImapProcessor(MailProcessor):
 
             signals.signal_event.wait(self.interval)
 
-            if signals.signal_received is not None:
+            if signals.terminate():
                 # Simply exit, since clean_sleep() will already have performed
                 # all exit rites if get here.
                 sys.exit(0)
@@ -503,7 +503,7 @@ class ImapProcessor(MailProcessor):
         messages = self._download_headers_batched(folder, uids)
 
         for message_uid in uids:
-            if signals.signal_received is not None:
+            if signals.terminate():
                 self.clean_exit()
             msg_obj = self._mail_class(self, folder=folder,
                                        uid=message_uid,
@@ -539,7 +539,7 @@ class ImapProcessor(MailProcessor):
             cache.pop(message)
 
         for message in message_list:
-            if signals.signal_received is not None:
+            if signals.terminate():
                 self.clean_exit()
             if message in cache:
                 cached_headers = cache[message]['headers']

@@ -141,7 +141,13 @@ class ImapProcessor(MailProcessor):
 
 
     def reconnect(self):
-        self.imap.logout()
+        # Ignore errors when logging out: if the connection is already logged
+        # out, we'll get a bad file descriptor.
+        try:
+            self.imap.logout()
+        except OSError:
+            pass
+
         if self.ssl_context is None:
             self.connect_plain()
         else:
@@ -269,7 +275,8 @@ class ImapProcessor(MailProcessor):
 
         self.rcfile_modified = False
         mtime_map = {}
-        while True:
+
+        while not signals.signal_event.is_set():
             if self.auto_reload_rcfile:
                 current_rcfile_mtime = self._get_previous_rcfile_mtime()
                 if current_rcfile_mtime != self._previous_rcfile_mtime:
@@ -284,7 +291,17 @@ class ImapProcessor(MailProcessor):
 
             if self._run_once:
                 self.clean_exit()
-            time.sleep(self.interval)
+            else:
+                self.clean_sleep()
+
+            signals.signal_event.wait(self.interval)
+
+            if signals.signal_received is not None:
+                # Simply exit, since clean_sleep() will already have performed
+                # all exit rites if get here.
+                sys.exit(0)
+
+            self.reconnect()
             self._cache_headers()
 
 
@@ -368,12 +385,18 @@ class ImapProcessor(MailProcessor):
         for folder in self.cache_delete:
             for uid in self.cache_delete[folder]:
                 self.header_cache[folder]['uids'].pop(uid)
+                self.cache_delete[folder].pop(uid)
 
         # Drop unserializable mail objects from header cache before saving.
         for folder in self.header_cache:
             if 'uids' in self.header_cache[folder]:
               for uid in self.header_cache[folder]['uids']:
-                  self.header_cache[folder]['uids'][uid].pop('obj')
+                  try:
+                      self.header_cache[folder]['uids'][uid].pop('obj')
+                  except KeyError as e:
+                      self.log_error("Couldn't drop Mail object for UID %s in "
+                                     "folder %s from cache: Mail object "
+                                     "missing" % (uid, folder))
         try:
             f = open(self.cache_file, mode='w')
             cache = json.dump(cache, f)
@@ -693,6 +716,20 @@ class ImapProcessor(MailProcessor):
         # STATUS ends SELECT state, so return to previously selected folder.
         self.select(self.selected)
         return (status == 'OK', data)
+
+
+    def clean_sleep(self):
+        """
+        Close IMAP connection and save cache before going to sleep.
+        """
+
+        self.log("==> Saving header cache...")
+        self._save_cache(self.header_cache)
+        self.log("==> Closing IMAP connection...")
+        self.imap.close()
+        self.imap.logout()
+        self.log("==> ...done.")
+
 
     def clean_exit(self):
         """

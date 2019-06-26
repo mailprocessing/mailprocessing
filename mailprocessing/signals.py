@@ -18,11 +18,15 @@
 # 02110-1301, USA.
 
 import signal
+import traceback
+import threading
 
+signal_event = threading.Event()
 signal_received = None
 
 def handler(signum, frame):
-    print('Received signal %s, waiting for current email to finish processing...' % signum)
+    global signal_event   # used for interruptable sleep
+    signal_event.set()
     global signal_received
     signal_received = signum
 

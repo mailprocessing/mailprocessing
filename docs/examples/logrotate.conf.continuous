@@ -1,0 +1,9 @@
+~/.mailprocessing/log-imap {
+           rotate 5
+           size 10M
+           compress
+           sharedscripts
+           postrotate
+               /usr/bin/kill -HUP $(cat ~/.mailprocessing/imapproc.pid)
+           endscript
+       }

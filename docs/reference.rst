@@ -40,4 +40,6 @@ include(reference/config.rst)
 Examples
 --------
 
-For some examples, see the `examples <examples/>`__ directory.
+For some mailprocessing configuration examples, see the
+`examples <examples/>`__ directory. You will also find sample
+logrotate configuration files for mailprocessing in there.

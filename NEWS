@@ -1,3 +1,19 @@
+Version 1.2.6 (2019-06-27)
+
+  - Added example logrotate configurations
+  - Added SIGHUP handler for reopening log files (useful for
+    log rotation)
+  - Use locking for PID and log files. You need to specify
+    dedicated PID and lock files if you want to run multiple
+    concurrent imapproc processes.
+  - Write PID file
+  - Improve signal handling and cleanup after receiving fatal
+    signals. Continuous mode in particular is a lot more
+    reliable and predictable now.
+  - Download message headers in a batched manner
+  - Download message flags in a batched manner
+  - Various documentation and release engineering fixes/cleanups
+
 Version 1.2.5 (2018-07-10)
 
   - Replace setup.py templating by static setup.py

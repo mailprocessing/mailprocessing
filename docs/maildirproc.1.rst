@@ -31,7 +31,15 @@ include(reference/options_maildirproc.rst)
 EXAMPLES
 --------
 
-For some examples, see the `examples <examples/>`__ directory.
+For some mailprocessing configuration examples, see the
+`examples <examples/>`__ directory. You will also find sample
+logrotate configuration files for mailprocessing in there.
+
+SIGNALS
+-------
+
+SIGHUP will cause imapproc to close and re-open its log file. This can be used
+for online log rotation in continuous mode.
 
 SEE ALSO
 --------

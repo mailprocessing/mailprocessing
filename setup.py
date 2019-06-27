@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="mailprocessing",
-    version="1.2.5",
+    version="1.2.6",
     author="Joel Rosdahl",
     author_email="joel@rosdahl.net",
     maintainer="Johannes Grassler",

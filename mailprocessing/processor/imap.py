@@ -478,8 +478,8 @@ class ImapProcessor(MailProcessor):
                                       s = s.decode(c if c else "ascii")
                               value_parts.append(s)
                       except (email_errors.HeaderParseError, LookupError,
-                                      ValueError):
-                              self._processor.log_error(
+                                      ValueError, UnicodeDecodeError):
+                              self.log_error(
                                       "Error: Could not decode header {0} in message "
                                       "UID {1}".format(ascii(header), uid))
                               value_parts.append(header)

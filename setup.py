@@ -2,10 +2,11 @@
 # -*-python-*-
 
 from setuptools import setup, find_packages
+from mailprocessing.version import PKG_VERSION
 
 setup(
     name="mailprocessing",
-    version="1.2.6",
+    version=PKG_VERSION,
     author="Joel Rosdahl",
     author_email="joel@rosdahl.net",
     maintainer="Johannes Grassler",

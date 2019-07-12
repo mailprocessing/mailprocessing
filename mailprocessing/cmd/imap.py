@@ -35,6 +35,7 @@ from mailprocessing.processor.imap import ImapProcessor
 
 from mailprocessing.util import iso_8601_now
 from mailprocessing.util import write_pidfile
+from mailprocessing.version import PKG_VERSION
 
 def main():
     imapproc_directory = "~/.mailprocessing"
@@ -46,7 +47,7 @@ def main():
         os.mkdir(os.path.expanduser(imapproc_directory))
 
     parser = OptionParser(
-        version="1.0.1",
+        version=PKG_VERSION,
         description=(
             "imapproc is a program that scans one or more folders in an"
             " IMAP mailbox and processes found mail as defined by an rc file."

@@ -39,6 +39,8 @@ from mailprocessing.processor.maildir import MaildirProcessor
 
 from mailprocessing.util import iso_8601_now
 
+from mailprocessing.version import PKG_VERSION
+
 def main():
     maildirproc_directory = "~/.mailprocessing"
     default_rcfile_location = os.path.join(maildirproc_directory, "maildir.rc")
@@ -48,7 +50,7 @@ def main():
         os.mkdir(os.path.expanduser(maildirproc_directory))
 
     parser = OptionParser(
-        version="1.0.1",
+        version=PKG_VERSION,
         description=(
             "maildirproc is a program that scans a number of maildir mail"
             " boxes and processes found mail as defined by an rc file. See"

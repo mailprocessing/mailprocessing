@@ -25,6 +25,7 @@ import time
 
 basestring = str
 
+
 def offset_to_timezone(offset):
     if offset <= 0:
         sign = "+"
@@ -46,19 +47,19 @@ def iso_8601_now():
 
 
 def batch_list(to_batch, batchsize=1000):
-  """
-  Divide large lists. Returns a list of lists with batchsize or fewer items.
-  """
+    """
+    Divide large lists. Returns a list of lists with batchsize or fewer items.
+    """
 
-  cur = 0
-  batches = []
+    cur = 0
+    batches = []
 
-  while cur <= len(to_batch):
-    increment = min(len(to_batch) - (cur - 1), batchsize)
-    batches.append(to_batch[cur:cur + increment])
-    cur += increment
+    while cur <= len(to_batch):
+        increment = min(len(to_batch) - (cur - 1), batchsize)
+        batches.append(to_batch[cur:cur + increment])
+        cur += increment
 
-  return batches
+    return batches
 
 
 def sha1sum(fp):

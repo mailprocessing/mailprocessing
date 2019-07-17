@@ -20,7 +20,6 @@
 import os
 import shutil
 import subprocess
-import sys
 
 from email import errors as email_errors
 from email import header as email_header
@@ -29,6 +28,7 @@ from email import parser as email_parser
 from mailprocessing.mail.base import MailBase
 from mailprocessing.util import iso_8601_now
 from mailprocessing.util import sha1sum
+
 
 class MaildirMail(MailBase):
     def __init__(self, processor, **kwargs):
@@ -198,7 +198,7 @@ class MaildirMail(MailBase):
                 e)
 
     def _forward(self, delete, addresses, env_sender):
-        if isinstance(addresses, basestring):
+        if isinstance(addresses, str):
             addresses = [addresses]
         else:
             addresses = list(addresses)
@@ -220,11 +220,10 @@ class MaildirMail(MailBase):
             return
 
         p = subprocess.Popen(
-            "{0} {1} -- {2}".format(
-                self._processor.sendmail,
-                flags,
-                " ".join(addresses)
-                ),
+            "{0} {1} -- {2}".format(self._processor.sendmail,
+                                    flags,
+                                    " ".join(addresses)
+                                    ),
             shell=True,
             stdin=subprocess.PIPE)
         shutil.copyfileobj(source_fp, p.stdin)
@@ -259,7 +258,6 @@ class MaildirMail(MailBase):
             return ":2," + parts[1]
         else:
             return ""
-
 
     def _log_processing(self):
         try:

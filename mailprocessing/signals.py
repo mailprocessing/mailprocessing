@@ -23,6 +23,7 @@ import threading
 signal_event = threading.Event()
 signal_received = None
 
+
 def handler(signum, frame):
     global signal_event   # used for interruptable sleep
     if not signum == signal.SIGHUP:
@@ -34,8 +35,10 @@ def handler(signum, frame):
 def hup_received():
     return signal_received == signal.SIGHUP
 
+
 def terminate():
     return (signal_received == signal.SIGINT) or (signal_received == signal.SIGTERM)
+
 
 signal.signal(signal.SIGINT, handler)
 signal.signal(signal.SIGTERM, handler)

@@ -167,4 +167,8 @@ class MaildirProcessor(MailProcessor):
             errmsg)
 
     def rename(self, source, target):
-        os.rename(source, target)
+        try:
+            os.rename(source, target)
+        except FileNotFoundError:
+            self.log_error("Error: Moving file from {0} to {1}. Maybe it doesn't exist?".format(
+                source, target))

@@ -90,9 +90,10 @@ class MaildirMail(MailBase):
             self._processor.create_maildir_name() + flagpart)
         try:
             self._processor.rename(self.path, target)
+            self._processor.log("==> Moved: \n(src) {0} -->\n(tgt) {1}".format(self.path, target))
         except IOError as e:
             self._processor.log_io_error(
-                "Could not rename {0} to {1}".format(tmp_target, target),
+                "Could not rename {0} to {1}".format(self.path, target),
                 e)
 
     def parse_mail(self):

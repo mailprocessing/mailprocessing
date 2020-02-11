@@ -17,10 +17,9 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301, USA.
 
-import sys
-
 from mailprocessing.mail.target import MailTarget
 from mailprocessing.mail.header import MailHeader
+
 
 class MailBase(object):
     """
@@ -79,8 +78,7 @@ class MailBase(object):
             "... Mail is not on mailing list {0}".format(list_name))
         return False
 
-
-    ### Methods to implement ###
+    # Methods to implement ###
 
     def copy(self, folder, create=False):
         """
@@ -176,6 +174,8 @@ class MailBase(object):
         metadata (typically a selection of headers) to the log file.
         """
 
+        message = ("You need to implement a log_processing() method in your "
+                   "MailBase subclass.")
         raise NotImplementedError(message)
 
     def is_seen(self):

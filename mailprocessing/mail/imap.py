@@ -18,9 +18,7 @@
 # 02110-1301, USA.
 
 import imaplib
-import re
 import subprocess
-import sys
 
 from email import errors as email_errors
 from email import header as email_header
@@ -28,6 +26,7 @@ from email import parser as email_parser
 
 from mailprocessing.mail.base import MailBase
 from mailprocessing import signals
+
 
 class ImapMail(MailBase):
     """
@@ -92,7 +91,7 @@ class ImapMail(MailBase):
             status, data = self._processor.imap.uid('copy', self.uid, folder)
         except self._processor.imap.error as e:
             self._processor.fatal_imap_error("Copying message UID %s to %s"
-                                           % (self.uid, folder), e)
+                                             % (self.uid, folder), e)
         if status == 'NO':
             if create and 'TRYCREATE' in data[0].decode('ascii'):
                 self._processor.log("==> Destination folder %s does not exist, "
@@ -103,7 +102,7 @@ class ImapMail(MailBase):
                     status, data = self._processor.imap.uid('copy', self.uid, folder)
                 except self._processor.imap.error as e:
                     self._processor.fatal_imap_error("Copying message UID %s to %s"
-                                                   % (self.uid, folder), e)
+                                                     % (self.uid, folder), e)
                 if status == 'NO':
                     self._processor.fatal_imap_error("Copying message UID %s "
                                                      " to %s failed with NO, "
@@ -140,7 +139,7 @@ class ImapMail(MailBase):
             # Fail hard because repeated failures here can leave a mess of
             # messages with `Deleted` flags.
             self._processor.fatal_imap_error("Deleting message %s'" %
-                                              self.uid, e)
+                                             self.uid, e)
             raise
 
         # make sure this gets purged from cache later
@@ -161,7 +160,7 @@ class ImapMail(MailBase):
         if self.processor.selected != folder:
             self._processor.select(self.folder)
 
-        if isinstance(addresses, basestring):
+        if isinstance(addresses, str):
             addresses = [addresses]
         else:
             addresses = list(addresses)
@@ -186,11 +185,10 @@ class ImapMail(MailBase):
             return
 
         p = subprocess.Popen(
-            "{0} {1} -- {2}".format(
-                self._processor.sendmail,
-                flags,
-                " ".join(addresses)
-                ),
+            "{0} {1} -- {2}".format(self._processor.sendmail,
+                                    flags,
+                                    " ".join(addresses)
+                                    ),
             shell=True,
             stdin=subprocess.PIPE)
 
@@ -295,36 +293,35 @@ class ImapMail(MailBase):
         flags = imaplib.ParseFlags(data[0][0])
 
         if self.message_flags is None:
-          self.message_flags = []
-          for flag in flags:
-              self.message_flags.append(flag.decode('ascii'))
-
+            self.message_flags = []
+            for flag in flags:
+                self.message_flags.append(flag.decode('ascii'))
 
         headers = email_parser.Parser().parsestr(data[0][1].decode('ascii',
                                                                    'ignore'),
                                                  headersonly=True)
 
         if self._headers is None:
-          self._headers = {}
-          for name in headers.keys():
-              value_parts = []
-              for header in headers.get_all(name, []):
-                  try:
-                      for (s, c) in email_header.decode_header(header):
-                          # email.header.decode_header in Python 3.x may
-                          # return either [(str, None)] or [(bytes,
-                          # None), ..., (bytes, encoding)]. We must
-                          # compensate for this.
-                          if not isinstance(s, str):
-                              s = s.decode(c if c else "ascii")
-                          value_parts.append(s)
-                  except (email_errors.HeaderParseError, LookupError,
-                          ValueError):
-                      self._processor.log_error(
-                          "Error: Could not decode header {0} in message "
-                          "UID {1}".format(ascii(header), self.uid))
-                      value_parts.append(header)
-              self._headers[name.lower()] = " ".join(value_parts)
+            self._headers = {}
+            for name in headers.keys():
+                value_parts = []
+                for header in headers.get_all(name, []):
+                    try:
+                        for (s, c) in email_header.decode_header(header):
+                            # email.header.decode_header in Python 3.x may
+                            # return either [(str, None)] or [(bytes,
+                            # None), ..., (bytes, encoding)]. We must
+                            # compensate for this.
+                            if not isinstance(s, str):
+                                s = s.decode(c if c else "ascii")
+                            value_parts.append(s)
+                    except (email_errors.HeaderParseError, LookupError,
+                            ValueError):
+                        self._processor.log_error(
+                            "Error: Could not decode header {0} in message "
+                            "UID {1}".format(ascii(header), self.uid))
+                        value_parts.append(header)
+                self._headers[name.lower()] = " ".join(value_parts)
 
         return True
 

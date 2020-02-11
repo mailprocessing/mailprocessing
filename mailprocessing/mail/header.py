@@ -18,7 +18,7 @@
 # 02110-1301, USA.
 
 import re
-import sys
+
 
 class MailHeader(object):
     def __init__(self, mail, name, text):

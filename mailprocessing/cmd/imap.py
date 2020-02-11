@@ -37,6 +37,7 @@ from mailprocessing.util import iso_8601_now
 from mailprocessing.util import write_pidfile
 from mailprocessing.version import PKG_VERSION
 
+
 def main():
     imapproc_directory = "~/.mailprocessing"
     default_rcfile_location = os.path.join(imapproc_directory, "imap.rc")
@@ -174,7 +175,7 @@ def main():
         "--port",
         type="int",
         help="IMAP port to use. Defaults to 143 if --use-ssl is not specified "
-              "and 993 if it is.")
+             "and 993 if it is.")
     parser.add_option(
         "--folder-prefix",
         type="string",
@@ -226,10 +227,10 @@ def main():
 
     for opt in ("host", "user"):
         if not options.__dict__[opt]:
-           print("Please specify --%s option." % opt, file=sys.stderr)
-           bad_options = True
+            print("Please specify --%s option." % opt, file=sys.stderr)
+            bad_options = True
 
-    if not ( options.password or options.password_command ):
+    if not (options.password or options.password_command):
         print("Please specify either --password or --password-command.", file=sys.stderr)
         bad_options = True
 
@@ -259,7 +260,7 @@ def main():
             sys.stderr.buffer.write(e.output)
             sys.exit(1)
         except Exception as e:
-            print ("Could not execute command %s: %s" % (options.password_command, e))
+            print("Could not execute command %s: %s" % (options.password_command, e))
             sys.exit(1)
         processor_kwargs['password'] = p
 

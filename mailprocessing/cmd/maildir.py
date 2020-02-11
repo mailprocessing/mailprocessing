@@ -19,7 +19,7 @@
 
 """maildirproc -- maildir processor
 
-http://mailprocessing.github.io/mailprocessing 
+http://mailprocessing.github.io/mailprocessing
 
 maildirproc is a small program that processes one or several existing
 mail boxes in the maildir format. It is primarily focused on mail
@@ -40,6 +40,7 @@ from mailprocessing.processor.maildir import MaildirProcessor
 from mailprocessing.util import iso_8601_now
 
 from mailprocessing.version import PKG_VERSION
+
 
 def main():
     maildirproc_directory = "~/.mailprocessing"

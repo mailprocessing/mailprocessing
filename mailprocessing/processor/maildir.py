@@ -18,21 +18,15 @@
 # 02110-1301, USA.
 
 import errno
-import hashlib
-import locale
 import os
 import random
 import socket
-import sys
 import time
-
-
-from mailprocessing.util import iso_8601_now
-from mailprocessing.util import safe_write
 
 from mailprocessing.processor.generic import MailProcessor
 from mailprocessing.mail.dryrun import DryRunMaildir
 from mailprocessing.mail.maildir import MaildirMail
+
 
 class MaildirProcessor(MailProcessor):
     def __init__(self, *args, **kwargs):
@@ -91,7 +85,7 @@ class MaildirProcessor(MailProcessor):
                         for mail_file in os.listdir(subdir_path):
                             mail_path = os.path.join(subdir_path, mail_file)
                             yield self._mail_class(self, maildir=maildir,
-                                                         mail_path=mail_path)
+                                                   mail_path=mail_path)
             if self._run_once:
                 break
             time.sleep(1)
@@ -132,21 +126,20 @@ class MaildirProcessor(MailProcessor):
         self.log("==> Successfully created folder %s" % target)
 
     def create_maildir(self, name, parents=True):
-      """
-      Creates a new maildir.
-      """
-      for d in ['cur', 'new', 'tmp']:
-        try:
-          if parents:
-              os.makedirs(os.path.join(name, d), mode=0o700)
-          else:
-              os.mkdir(os.path.join(name, d), mode=0o700)
-        except OSError as e:
-          if e.errno == errno.EEXIST:
-            pass
-          else:
-            raise
-
+        """
+        Creates a new maildir.
+        """
+        for d in ['cur', 'new', 'tmp']:
+            try:
+                if parents:
+                    os.makedirs(os.path.join(name, d), mode=0o700)
+                else:
+                    os.mkdir(os.path.join(name, d), mode=0o700)
+            except OSError as e:
+                if e.errno == errno.EEXIST:
+                    pass
+                else:
+                    raise
 
     def create_maildir_name(self):
         """Create and return a unique name for a Maildir message."""
@@ -174,4 +167,8 @@ class MaildirProcessor(MailProcessor):
             errmsg)
 
     def rename(self, source, target):
-        os.rename(source, target)
+        try:
+            os.rename(source, target)
+        except FileNotFoundError:
+            self.log_error("Error: Moving file from {0} to {1}. Maybe it doesn't exist?".format(
+                source, target))

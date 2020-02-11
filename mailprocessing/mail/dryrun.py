@@ -17,16 +17,16 @@
 # Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
 # 02110-1301, USA.
 
-from mailprocessing.mail.base import MailBase
 from mailprocessing.mail.imap import ImapMail
 from mailprocessing.mail.maildir import MaildirMail
+
 
 class DryRunImap(ImapMail):
     def __init__(self, *args, **kwargs):
         super(DryRunImap, self).__init__(*args, **kwargs)
 
     def copy(self, maildir, **kwargs):
-        maildir = self.processor.list_path(maildir, 
+        maildir = self.processor.list_path(maildir,
                                            sep=self.processor.separator)
         self._processor.log("==> Copying to {0}".format(maildir))
 
@@ -40,14 +40,14 @@ class DryRunImap(ImapMail):
         self._forward(False, addresses, env_sender)
 
     def move(self, maildir, **kwargs):
-        maildir = self.processor.list_path(maildir, 
+        maildir = self.processor.list_path(maildir,
                                            sep=self.processor.separator)
         self._processor.log("==> Moving to {0}".format(maildir))
 
     # ----------------------------------------------------------------
 
     def _forward(self, delete, addresses, env_sender):
-        if isinstance(addresses, basestring):
+        if isinstance(addresses, str):
             addresses = [addresses]
         else:
             addresses = list(addresses)
@@ -68,7 +68,7 @@ class DryRunMaildir(MaildirMail):
         super(DryRunMaildir, self).__init__(*args, **kwargs)
 
     def copy(self, maildir, **kwargs):
-        maildir = self.processor.list_path(maildir, 
+        maildir = self.processor.list_path(maildir,
                                            sep=self.processor.separator)
         self._processor.log("==> Copying to {0}".format(maildir))
 
@@ -82,14 +82,14 @@ class DryRunMaildir(MaildirMail):
         self._forward(False, addresses, env_sender)
 
     def move(self, maildir, **kwargs):
-        maildir = self.processor.list_path(maildir, 
+        maildir = self.processor.list_path(maildir,
                                            sep=self.processor.separator)
         self._processor.log("==> Moving to {0}".format(maildir))
 
     # ----------------------------------------------------------------
 
     def _forward(self, delete, addresses, env_sender):
-        if isinstance(addresses, basestring):
+        if isinstance(addresses, str):
             addresses = [addresses]
         else:
             addresses = list(addresses)

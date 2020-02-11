@@ -18,29 +18,23 @@
 # 02110-1301, USA.
 
 import fcntl
-import hashlib
-import locale
 import os
-import random
-import socket
 import sys
 import time
 
 from mailprocessing import signals
 
-from mailprocessing.util import iso_8601_now
 from mailprocessing.util import safe_write
+
 
 class MailProcessor(object):
     def __init__(
             self, rcfile, log_fp, **kwargs):
 
-        defaults = {
-          'log_level': 1,
-          'dry_run': False,
-          'run_once': False,
-          'auto_reload_rcfile': False
-          }
+        defaults = {'log_level': 1,
+                    'dry_run': False,
+                    'run_once': False,
+                    'auto_reload_rcfile': False}
 
         for key in defaults:
             if key not in kwargs:
@@ -78,7 +72,7 @@ class MailProcessor(object):
                 try:
                     fcntl.flock(self._log_fp, fcntl.LOCK_EX | fcntl.LOCK_NB)
                     lock_acquired = True
-                except OSError as e:
+                except OSError:
                     print("Couldn't acquire lock on log file %s, sleeping "
                           "for 5s" % self._log_fp.name, file=sys.stderr)
                     time.sleep(5)
@@ -187,13 +181,15 @@ class MailProcessor(object):
         """
         Converts path to list form and returns path prepended with the
         processor's path prefix. If its leading component is already the prefix
-        or there is no prefix set, the original path in list form is returned. 
+        or there is no prefix set, the original path in list form is returned.
         """
 
         path = self.path_list(path)
         if len(path) == 0:
             return path
 
+        if sep == '/':
+            return path
         # Special case (mostly relevant for maildirs):
         # Return an empty first component if path and
         # prefix are identical.

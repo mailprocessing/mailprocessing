@@ -1,3 +1,12 @@
+Version 1.2.7 (2019-07-20)
+
+  * imapproc: fix crash when attempting to query message flags on empty folders
+  * maildirproc: catch and log ENOENT when moving to a nonexistent target folder
+  * maildirproc: logging improvements/fixes
+  * maildirproc: fix handling of '/' as separator
+  * Various test fixes and flake8 cleanups (test suite still non-functional)
+  * Fix clean target in Makefile on MacOS
+
 Version 1.2.6 (2019-06-27)
 
   - Added example logrotate configurations

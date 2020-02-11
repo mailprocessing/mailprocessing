@@ -628,6 +628,10 @@ class ImapProcessor(MailProcessor):
         self.log_debug("%d UIDs in cache" % len(self.header_cache[folder]['uids']))
 
         uid_list = list(self.header_cache[folder]['uids'].keys())
+
+        if len(uid_list) == 0:
+          return ([], [])
+
         for batch in batch_list(uid_list, self.flag_batchsize):
             self.log_debug("%d UIDs in batch" % len(batch))
             ret_full = []

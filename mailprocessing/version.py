@@ -20,4 +20,4 @@
 # Change the version below to change the mailprocessing/imapproc version. This
 # controls the python module's version as well.
 
-PKG_VERSION = "1.2.8"
+PKG_VERSION = "1.2.7"

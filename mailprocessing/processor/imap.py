@@ -404,7 +404,7 @@ class ImapProcessor(MailProcessor):
         msgs = {}
 
         for batch in batch_list(uids, self.header_batchsize):
-            uid_list = ",".join(uids)
+            uid_list = ",".join(batch)
 
             self.log_debug("==> Downloading headers for UIDs %s" % uid_list)
 
@@ -472,7 +472,7 @@ class ImapProcessor(MailProcessor):
                     msgs[uid]['flags'] = flags
                     msgs[uid]['headers'] = headers
 
-        self.log_debug("==> Header download finished for for UIDs %s" % uid_list)
+            self.log_debug("==> Header download finished for for UIDs %s" % uid_list)
 
         return msgs
 

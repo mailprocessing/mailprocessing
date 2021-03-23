@@ -20,6 +20,9 @@
 from mailprocessing.mail.target import MailTarget
 from mailprocessing.mail.header import MailHeader
 
+import time
+import email.utils
+
 
 class MailBase(object):
     """
@@ -77,6 +80,35 @@ class MailBase(object):
         self._processor.log_debug(
             "... Mail is not on mailing list {0}".format(list_name))
         return False
+
+    def create_move(self, folder, move_all=False):
+      # Only act on emails that have been read already
+      # or if move_all has not been specified.
+      if self.is_seen() or move_all:
+          self.move(folder, create=True)
+
+    def archive(self, max_days=60, folder_prefix=["Archive"],
+                year_subfolder=False, month_subfolder=False,
+                move_unread=False):
+      date = email.utils.parsedate_tz('%s' % self['Date'])
+      try:
+         year = "%s" % date[0]
+         month = "%s" % date[1]
+      except Exception as e:
+        self.processor.log_error("==> Cannot process Date header, ignoring.")
+        return
+
+      timestamp_now = int(time.time())
+      timestamp_mail = email.utils.mktime_tz(date)
+      if (timestamp_now - timestamp_mail) >= (max_days * 86400):
+          folder = folder_prefix
+          if year_subfolder and not month_subfolder:
+              folder = folder + [year]
+          if month_subfolder:
+              folder = folder + [year, month]
+          self.processor.log("==> Email is older than %s days, aging out to "
+                             "folder %s" % (max_days, '.'.join(folder)))
+          self.create_move(folder, move_all=move_unread)
 
     # Methods to implement ###
 

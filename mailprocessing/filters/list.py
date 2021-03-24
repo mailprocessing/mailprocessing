@@ -6,7 +6,7 @@ class ListFilter:
 
       self.folder_prefix = kwargs.get('folder_prefix', [self.list_substring])
       self.only_seen = kwargs.get('only_seen', True)
-      self.unread_blacklist = kwargs.get('archive_all_on', [])
+      self.archive_all_on = kwargs.get('archive_all_on', [])
       self.year_subfolder = kwargs.get('year_subfolder', False)
       self.month_subfolder = kwargs.get('month_subfolder', False)
       self.retain_keywords = kwargs.get('retain_keywords', [])
@@ -66,7 +66,7 @@ class ListFilter:
 
         if self.should_archive(mail):
             prefix = self.folder_prefix + [self.listid_listname(mail)]
-            mail.archive(max_days=0, 
+            mail.archive(max_days=0,
                          folder_prefix=prefix,
                          year_subfolder=self.year_subfolder,
                          month_subfolder=self.month_subfolder,

@@ -95,7 +95,10 @@ class ImapProcessor(MailProcessor):
         self.prefix = kwargs.get('folder_prefix', None)
         self.separator = kwargs.get('folder_separator', None)
 
-        self._separator_prefix(cmd_separator=self.separator,
+        # Use the first folder specified as reference for name determining name
+        # space prefix and folder separator.
+        self._separator_prefix(kwargs['folders'][0],
+                               cmd_separator=self.separator,
                                cmd_prefix=self.prefix)
 
         self.log("==> Separator character is `%s`" % self.separator)
@@ -569,7 +572,7 @@ class ImapProcessor(MailProcessor):
 
         # Make sure the folder name is prepended with prefix where applicable.
         folder = self.path_ensure_prefix(folder)
-        folder = self.list_path(folder)
+        folder = self.list_path(folder, sep=self.separator)
 
         self.log("==> Selecting folder %s" % folder)
 
@@ -592,7 +595,8 @@ class ImapProcessor(MailProcessor):
 
         return True
 
-    def _separator_prefix(self, cmd_separator=None, cmd_prefix=None):
+    def _separator_prefix(self, reference, cmd_separator=None,
+                          cmd_prefix=None):
         """
         Retrieves name space prefix and separator from IMAP server and sets
         self.separator and self.prefix accordingly. If any of these is
@@ -601,7 +605,7 @@ class ImapProcessor(MailProcessor):
         """
 
         try:
-            status, data = self.imap.list('""', '%')
+            status, data = self.imap.list('""', reference)
         except self.imap.error as e:
             self.fatal_error("Couldn't issue LIST command: %s" % e)
         if status != 'OK':

@@ -95,10 +95,7 @@ class ImapProcessor(MailProcessor):
         self.prefix = kwargs.get('folder_prefix', None)
         self.separator = kwargs.get('folder_separator', None)
 
-        # Use the first folder specified as reference for name determining name
-        # space prefix and folder separator.
-        self._separator_prefix(kwargs['folders'][0],
-                               cmd_separator=self.separator,
+        self._separator_prefix(cmd_separator=self.separator,
                                cmd_prefix=self.prefix)
 
         self.log("==> Separator character is `%s`" % self.separator)
@@ -595,7 +592,7 @@ class ImapProcessor(MailProcessor):
 
         return True
 
-    def _separator_prefix(self, reference, cmd_separator=None,
+    def _separator_prefix(self, cmd_separator=None,
                           cmd_prefix=None):
         """
         Retrieves name space prefix and separator from IMAP server and sets
@@ -603,6 +600,11 @@ class ImapProcessor(MailProcessor):
         specified through a command line parameter, the value provided on the
         command line takes precedence.
         """
+
+        # Use INBOX as reference path for the list command. It typically exists
+        # and if it does have children that indicates a weirdish kind of IMAP
+        # server where every folder is a subfolder of INBOX.
+        reference = 'INBOX'
 
         try:
             status, data = self.imap.list('""', reference)
@@ -612,10 +614,13 @@ class ImapProcessor(MailProcessor):
             self.fatal_error("Couldn't issue LIST command: "
                              "%s / %s" % (status, data[0].decode('ascii')))
 
-        resp = data[0].decode('ascii').split(" ")
-        attributes = resp[0]
-        server_separator = resp[1].strip('"')
-        root_folder = resp[2].strip('"')
+        resp = data[0].decode('ascii')
+        [attributes, rest] = resp.split(')')
+        rest = rest.split(' ')
+        attributes = attributes.strip('(')
+
+        root_folder = rest[0].strip('"')
+        server_separator = rest[1].strip('"')
 
         root_has_children = '\\HasChildren' in attributes
 
@@ -626,7 +631,7 @@ class ImapProcessor(MailProcessor):
         # that store everything under INBOX. Use --folder-prefix for
         # the rest for now.
         if cmd_prefix is None and root_has_children:
-            self.prefix = root_folder
+            self.prefix = reference
         else:
             self.prefix = ""
 

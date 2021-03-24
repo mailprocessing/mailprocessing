@@ -94,7 +94,8 @@ def main():
         help=(
             "add FOLDER to the set of IMAP folders to process (can"
             " be passed multiple times). Using `.` as a folder should"
-            " work for most IMAP servers."))
+            " work for most IMAP servers. At least one folder must be"
+            " specified."))
     parser.add_option(
         "--once",
         action="store_true",
@@ -225,6 +226,11 @@ def main():
 
     bad_options = False
 
+    if len(options.folders) == 0:
+        print("Please specify at least one folder to process using the"
+              " --folder option", file=sys.stderr)
+        bad_options = True
+
     for opt in ("host", "user"):
         if not options.__dict__[opt]:
             print("Please specify --%s option." % opt, file=sys.stderr)
@@ -331,7 +337,7 @@ def main():
         "Starting imapproc {0} at {1}".format(
             parser.version, iso_8601_now()))
 
-    if options.folders:
+    if len(options.folders) > 0:
         processor.folders = options.folders
     if "SENDMAIL" in os.environ:
         processor.sendmail = os.environ["SENDMAIL"]

@@ -235,6 +235,28 @@ class MaildirMail(MailBase):
         if delete:
             self._delete()
 
+    def mark_seen(self):
+        if self.is_seen():
+            return
+        parts = self.path.split(os.sep)
+        prefix, sep, flags = parts[-1].rpartition(":2,")
+        if sep == "":
+            prefix, flags = flags, ""
+        flags = "".join(sorted(flags + "S"))  # Add the Seen flag, keep sorted.
+        parts[-2:] = ["cur", prefix + ":2," + flags]
+        target = os.sep.join(parts)
+        try:
+            self._processor.rename(self.path, target)
+        except IOError as e:
+            self._processor.log_io_error(
+                "Could not rename {0} to {1}".format(self.path, target),
+                e)
+        try:
+            self._processor.log("==> Marking {0} as read to {1}".format(
+                                self.path, target))
+        finally:
+            self._path = target
+
     def is_flagged(self):
         flags = self._get_flagpart()
         if 'F' in flags:

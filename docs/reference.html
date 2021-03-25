@@ -213,8 +213,8 @@
 <dt>is_flagged()</dt>
 <dd><p>Returns True if the message has been flagged by the user, False otherwise.</p>
 </dd>
-<dt>mark_read()<dt>
-<dd><p>Marks the mail as read.</p>
+<dt>mark_seen()<dt>
+<dd><p>Marks the mail as having been seen by the user.</p>
 </dd>
 <dt>move(<em>maildir</em>, <em>create=False</em>)</dt>
 <dd><p>Move the mail to <em>maildir</em> (a string). <em>maildir</em> <strong>must</strong> be on the same file system as the mail, otherwise nothing will happen and an error will be logged. For MaildirProcessor, a relative <em>maildir</em> path, will be considered relative to the maildir base directory. If the optional <em>create</em> keyword argument is set to True, the folder (and its parent folders) will be created if it does not exist. By default non-existent folders are not created.</p>

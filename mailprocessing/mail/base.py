@@ -178,6 +178,18 @@ class MailBase(object):
                    "MailBase subclass.")
         raise NotImplementedError(message)
 
+    def mark_seen(self):
+        """
+        Mark a message as having been read.
+
+        This message is marked as having been read; the operation should be
+        idempotent.
+        """
+
+        message = ("You need to implement a mark_seen() method in your "
+                   "MailBase subclass.")
+        raise NotImplementedError(message)
+
     def is_seen(self):
         """
         Check whether a message has been read.

@@ -135,7 +135,7 @@ class ImapProcessor(MailProcessor):
         # out, we'll get a bad file descriptor.
         try:
             self.imap.logout()
-        except OSError:
+        except Exception:
             pass
 
         if self.ssl_context is None:

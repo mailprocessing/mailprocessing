@@ -42,7 +42,7 @@ from mailprocessing.util import iso_8601_now
 from mailprocessing.version import PKG_VERSION
 
 
-def main():
+def main(args=sys.argv[1:]):
     maildirproc_directory = "~/.mailprocessing"
     default_rcfile_location = os.path.join(maildirproc_directory, "maildir.rc")
     default_logfile_location = os.path.join(maildirproc_directory, "log-maildir")
@@ -153,7 +153,7 @@ def main():
         default=0,
         dest="verbosity",
         help="increase log level one step")
-    (options, _) = parser.parse_args(sys.argv[1:])
+    (options, _) = parser.parse_args(args)
 
     if options.test:
         options.dry_run = True

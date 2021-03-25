@@ -1,22 +1,23 @@
 #! /usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import contextlib
+import inspect
+import multiprocessing
 import os
 import shutil
-import subprocess
 import sys
 import textwrap
+import tempfile
 import unittest
 from os.path import join as joinpath
 
 
 class TestFixture(unittest.TestCase):
-    _maildir_dir = "test.maildir.%d" % os.getpid()
-    _testdata_dir = "test.testdata.%d" % os.getpid()
     _testmail_data_a = ["From: Sender <sender@example.com>\n",
                         "To: Recipient <recipient@example.com>\n",
                         "Cc: Carbon Copy <carbon.copy@example.com>\n",
-                        "Subject: A subject with =?utf8?b?csOkdnNtw7ZyZ8Olcw==?=\n",
+                        "Subject: Subject =?utf8?b?csOkdnNtw7ZyZ8Olcw==?=\n",
                         "Delivered-To: Alpha\n",
                         "X-BeenThere: Bravo\n",
                         "X-Mailing-List: Charlie\n",
@@ -30,10 +31,8 @@ class TestFixture(unittest.TestCase):
                                  "Body.\n"]
 
     def setUp(self):
-        shutil.rmtree(self._testdata_dir, True)
-        os.mkdir(self._testdata_dir)
-        shutil.rmtree(self._maildir_dir, True)
-        os.mkdir(self._maildir_dir)
+        self._maildir_dir = tempfile.mkdtemp(prefix="mailprocessing.maildir.")
+        self._testdata_dir = tempfile.mkdtemp(prefix="mailprocessing.test.")
 
     def tearDown(self):
         shutil.rmtree(self._testdata_dir, True)
@@ -49,29 +48,53 @@ class TestFixture(unittest.TestCase):
         fp.write("".join(getattr(self, "_testmail_data_%s" % name)))
         fp.close()
 
+    @staticmethod
+    def _run_mdp(argv, env):
+        for k, v in env.items():
+            os.environ[k] = v
+        from mailprocessing.cmd.maildir import main as maildirproc
+        maildirproc(argv)
+
     def run_mdp(self, rc, maildirs, maildir_base=""):
-        if maildir_base is None:
-            extra_argv = []
-        elif maildir_base == "":
-            extra_argv = ["-b", self._maildir_dir]
-        else:
-            extra_argv = ["-b", maildir_base]
-        argv = ["./%s" % self._maildirproc_name,
-                "--once",
-                "-l", "/dev/null",
-                "-r", "-"] + extra_argv
-        for maildir in maildirs:
-            argv.extend(["-m", maildir])
-        sh_cmd = "-c 'a=%s/delivered; echo $1 >$a; cat >>$a'" % (
-            self._testdata_dir)
-        p = subprocess.Popen(argv,
-                             stdin=subprocess.PIPE,
-                             env={"SENDMAIL": "/bin/sh",
-                                  "SENDMAILFLAGS": sh_cmd})
-        dedented_rc = textwrap.dedent(rc)
-        p.communicate(bytes(dedented_rc, encoding="utf8"))
-        p.wait()
-        assert(p.returncode == 0)
+        with contextlib.ExitStack() as context_stack:
+            argv = ["--once", "--log-level", "99", "--folder-separator", "/"]
+            if maildir_base == "":
+                argv.extend(["-b", self._maildir_dir])
+            elif maildir_base is not None:
+                argv.extend(["-b", maildir_base])
+            for maildir in maildirs:
+                argv.extend(["-m", maildir])
+
+            rcfile = tempfile.NamedTemporaryFile(mode='w', encoding="utf-8")
+            context_stack.enter_context(rcfile)
+            argv.extend(["--rcfile", rcfile.name])
+            rcfile.write(textwrap.dedent(rc))
+            rcfile.flush()
+
+            logfile = tempfile.NamedTemporaryFile(mode='r', encoding="utf-8")
+            context_stack.enter_context(logfile)
+            argv.extend(["--logfile", logfile.name])
+
+            env = {
+                "SENDMAIL": "/bin/sh",
+                "SENDMAILFLAGS": "-c 'a=%s/delivered; echo $1>$a; cat>>$a'" % (
+                                    self._testdata_dir),
+            }
+
+            child = multiprocessing.Process(
+                name=inspect.stack(2)[1].function,
+                target=TestFixture._run_mdp,
+                args=(argv,),
+                kwargs={"env": env})
+            child.start()
+            child.join(10)
+            if child.exitcode != 0:
+                while True:
+                    result = logfile.read()
+                    if len(result) == 0:
+                        break
+                    sys.stderr.write(result)
+                self.assertEqual(child.exitcode, 0)
 
     def verify_result(self, result):
         actual = {}
@@ -85,13 +108,8 @@ class TestFixture(unittest.TestCase):
 
 
 class TestSuite(TestFixture):
-    def __init__(self, method_name, use_python2, maildirproc_name):
+    def __init__(self, method_name):
         TestFixture.__init__(self, method_name)
-        self._use_python2 = use_python2
-        self._maildirproc_name = maildirproc_name
-
-    def fix_u(self, script):
-        return script.replace("__u__", "u" if self._use_python2 else "")
 
     ###########################################################################
     # Basics.
@@ -148,7 +166,7 @@ class TestSuite(TestFixture):
         self.verify_result({"dest/cur": 1})
         filename = os.listdir(joinpath(self._maildir_dir, "dest/cur"))[0]
         self.assertNotEqual(filename, "a:2,x")
-        self.assert_(filename.endswith(":2,x"))
+        self.assertTrue(filename.endswith(":2,x"))
 
     def test_copy(self):
         rc = '''
@@ -178,7 +196,7 @@ class TestSuite(TestFixture):
         self.verify_result({"incoming/cur": 1, "dest/cur": 1})
         filename = os.listdir(joinpath(self._maildir_dir, "dest/cur"))[0]
         self.assertNotEqual(filename, "a:2,x")
-        self.assert_(filename.endswith(":2,x"))
+        self.assertTrue(filename.endswith(":2,x"))
 
     def test_forward(self):
         rc = '''
@@ -266,12 +284,12 @@ class TestSuite(TestFixture):
         self.verify_result({"dest/new": 1})
 
     def test_utf8_header(self):
-        rc = self.fix_u('''
+        rc = '''
             for mail in processor:
                 if mail["Subject"].matches(
-                        __u__"A subject with\\s+r\\xe4vsm\\xf6rg\\xe5s"):
+                        "Subject\\s+r\\xe4vsm\\xf6rg\\xe5s"):
                     mail.move("dest")
-            ''')
+            '''
 
         self.makedirs(["incoming", "dest"])
         self.create("a", "incoming/new/a")
@@ -279,11 +297,11 @@ class TestSuite(TestFixture):
         self.verify_result({"dest/new": 1})
 
     def test_bad_header(self):
-        rc = self.fix_u('''
+        rc = '''
             for mail in processor:
-                if mail["subject"] == __u__"=?ISO-2022-JP?B?gYqBiQ=?=":
+                if mail["subject"] == "=?ISO-2022-JP?B?gYqBiQ=?=":
                     mail.move("dest")
-            ''')
+            '''
 
         self.makedirs(["incoming", "dest"])
         self.create("bad_header", "incoming/new/bad_header")
@@ -397,21 +415,18 @@ class TestSuite(TestFixture):
                             "x-mailing-list/new": 1,
                             "mailing-list/new": 1})
 
-class Python3TestSuite(TestSuite):
-    def __init__(self, method_name):
-        TestSuite.__init__(self, method_name, False, "maildirproc")
 
 ######################################################################
 
-
-test_runner = unittest.TextTestRunner()
-test_loader = unittest.defaultTestLoader
-test_suite = unittest.TestSuite()
-args = sys.argv[1:]
-if args:
-    for arg in args:
-        test_suite.addTest(Python3TestSuite(arg))
-else:
-    test_suite.addTests(test_loader.loadTestsFromTestCase(Python3TestSuite))
-result = test_runner.run(test_suite)
-sys.exit(0 if result.wasSuccessful() else 1)
+if __name__ == '__main__':
+    test_runner = unittest.TextTestRunner()
+    test_loader = unittest.defaultTestLoader
+    test_suite = unittest.TestSuite()
+    args = sys.argv[1:]
+    if args:
+        for arg in args:
+            test_suite.addTest(TestSuite(arg))
+    else:
+        test_suite.addTests(test_loader.loadTestsFromTestCase(TestSuite))
+    result = test_runner.run(test_suite)
+    sys.exit(0 if result.wasSuccessful() else 1)

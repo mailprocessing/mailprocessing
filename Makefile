@@ -1,5 +1,5 @@
 VERSION = $(shell grep 'version=' setup.py | cut -d'"' -f 2)
-all: mailprocessing-$(VERSION).tar.bz2
+all: test mailprocessing-$(VERSION).tar.bz2
 
 DIST_FILES = \
     LICENSE \
@@ -27,4 +27,7 @@ clean:
 	rm -rf *.gz
 	find . -name '*~' | xargs rm -f
 
-.PHONY: all clean docs
+test: run-testsuite
+	./run-testsuite
+
+.PHONY: all clean docs test

@@ -157,7 +157,7 @@ class ImapMail(MailBase):
         # Make sure we have this message's folder selected (UIDs should be
         # globally unique but may be on a per folder basis in sufficiently
         # broken IMAP implementations).
-        if self.processor.selected != folder:
+        if self.processor.selected != self.folder:
             self._processor.select(self.folder)
 
         if isinstance(addresses, str):
@@ -180,8 +180,8 @@ class ImapMail(MailBase):
             # Fail soft, since we haven't changed any mailbox state or forwarded
             # anything, yet. Hence we might as well retry later.
             self._processor.log_imap_error(
-                "Error forwarding: Could not retrieve message UID {0}: {1}"
-                "{1}".format(uid, e))
+                "Error forwarding: Could not retrieve message UID {0}: "
+                "{1}".format(self.uid, e))
             return
 
         p = subprocess.Popen(

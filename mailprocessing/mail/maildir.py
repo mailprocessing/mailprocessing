@@ -53,8 +53,8 @@ class MaildirMail(MailBase):
         folder_list = self._processor.path_ensure_prefix(maildir, sep=sep)
         maildir = self._processor.list_path(folder_list, sep=sep)
 
-        self._processor.log("==> Copying to {0}".format(target))
-        self._copy(maildir, *kwargs)
+        self._processor.log("==> Copying to {0}".format(maildir))
+        self._copy(maildir, **kwargs)
 
     def delete(self):
         self._processor.log("==> Deleting")

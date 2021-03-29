@@ -320,7 +320,7 @@ class ImapProcessor(MailProcessor):
                 self.header_cache[folder]['uidvalidity'] = uidvalidity
                 continue
 
-            if uidvalidity == self.header_cache[folder]['uidvalidity']:
+            if uidvalidity == self.header_cache[folder].get('uidvalidity'):
                 self.header_cache[folder]['uids'] = self._update_cache(
                     folder, self.header_cache[folder]['uids'])
             else:
@@ -344,6 +344,8 @@ class ImapProcessor(MailProcessor):
         """
         This method loads a previously stored header cache from the cache file.
         """
+        if self.cache_file is None:
+            return
         try:
             f = open(self.cache_file)
             cache = json.load(f)
@@ -364,6 +366,9 @@ class ImapProcessor(MailProcessor):
         This method dumps the current state of the header cache to the cache
         file.
         """
+        if self.cache_file is None:
+            self.log_debug("Skipping saving header cache.")
+            return
 
         self.log_debug("Saving header cache to disk.")
 

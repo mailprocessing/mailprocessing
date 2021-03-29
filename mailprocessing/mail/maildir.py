@@ -143,7 +143,7 @@ class MaildirMail(MailBase):
                 self._processor.create_folder(maildir, **kwargs)
             except OSError as e:
                 self._processor.fatal_error("Couldn't create maildir "
-                                            "%s: %s" % (target, e))
+                                            "%s: %s" % (maildir, e))
         try:
             source_fp = open(self.path, "rb")
         except IOError as e:

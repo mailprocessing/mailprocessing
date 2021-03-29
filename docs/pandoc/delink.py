@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 
-import sys
-
 """
 Pandoc filter for stripping links down to just their titles.
 """
 
-from pandocfilters import toJSONFilter, Emph, Para
+from pandocfilters import toJSONFilter
 
 def striplinks(key, value, format, meta):
   if key == 'Link':

@@ -86,7 +86,7 @@ def write_pidfile(pidfile):
         try:
             fcntl.flock(pidfile, fcntl.LOCK_EX | fcntl.LOCK_NB)
             lock_acquired = True
-        except OSError as e:
+        except OSError:
             print("Couldn't acquire lock on pid file %s, sleeping for 5s" % pidfile.name, file=sys.stderr)
         time.sleep(5)
 

@@ -242,6 +242,21 @@ class ImapMail(MailBase):
 
         return seen_status
 
+    def mark_seen(self):
+        """
+        Sets the messages's '\Seen' flag.
+        """
+        if '\\Seen' in self.message_flags:
+            return
+        try:
+            self._processor.log("==> Marking %s as seen" % self.uid)
+            self._processor.imap.uid('store', self.uid, '+FLAGS', r'(\Seen)')
+        except self._processor.imap.error as e:
+            self._processor.log_imap_error(
+                "Error: Could not mark message {0} as seen: {1}".format(
+                    self.uid, e))
+        self.message_flags.append('\\Seen')
+
     def move(self, folder, create=False):
         """
         Moves the message to folder. Optionally that folder can be created if

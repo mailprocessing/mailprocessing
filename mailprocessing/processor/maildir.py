@@ -23,6 +23,8 @@ import random
 import socket
 import time
 
+from mailprocessing import signals
+
 from mailprocessing.processor.generic import MailProcessor
 from mailprocessing.mail.dryrun import DryRunMaildir
 from mailprocessing.mail.maildir import MaildirMail
@@ -86,7 +88,7 @@ class MaildirProcessor(MailProcessor):
                             mail_path = os.path.join(subdir_path, mail_file)
                             yield self._mail_class(self, maildir=maildir,
                                                    mail_path=mail_path)
-            if self._run_once:
+            if self._run_once or signals.terminate():
                 break
             time.sleep(1)
 

@@ -96,6 +96,46 @@ class MaildirMail(MailBase):
                 "Could not rename {0} to {1}".format(self.path, target),
                 e)
 
+    def body(self):
+      # We'll just use some encoding that handles all byte values
+      # without bailing out. Non-ASCII characters should not exist
+      # in the headers according to email standards, but if they do
+      # anyway, we mustn't crash.
+      encoding = "iso-8859-1"
+
+      try:
+          fp = open(self.path, encoding=encoding)
+      except IOError as e:
+          # The file was probably (re)moved by some other process.
+          self._processor.log_mail_opening_error(self.path, e)
+          return None
+      email = email_parser.Parser().parse(fp, headersonly=False)
+      fp.close()
+      return email.get_payload()
+
+    def fingerprint(self, headers=('from', 'to','subject', 'date', 'cc', 'content-type')):
+      body = self.body()
+      if headers is None:
+        headers = self._headers.keys()
+
+      msg = ""
+      for key in headers:
+        try:
+          msg = msg + key.lower() + ": " + self._headers[key.lower()] + "\n"
+        except KeyError:
+          pass
+      msg = msg + "\n"
+
+      if body is None:
+        return None
+      if isinstance(body, list):
+        for part in body:
+          msg = msg + part.as_string()
+      else:
+        msg = msg + body
+
+      return sha1sum(msg)
+
     def parse_mail(self):
         # We'll just use some encoding that handles all byte values
         # without bailing out. Non-ASCII characters should not exist

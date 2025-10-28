@@ -19,6 +19,7 @@
 
 import fcntl
 import hashlib
+import io
 import os
 import sys
 import time
@@ -62,13 +63,17 @@ def batch_list(to_batch, batchsize=1000):
     return batches
 
 
-def sha1sum(fp):
+def sha1sum(target):
     sha_obj = hashlib.sha1()
-    while True:
-        data = fp.read(4096)
-        if not data:
-            break
-        sha_obj.update(data)
+    if isinstance(target, io.IOBase):
+      while True:
+          data = target.read(4096)
+          if not data:
+              break
+          sha_obj.update(data)
+    else:
+      data = target
+      sha_obj.update(bytes(data, 'iso-8859-1'))
     return sha_obj.hexdigest()
 
 

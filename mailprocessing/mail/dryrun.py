@@ -39,6 +39,9 @@ class DryRunImap(ImapMail):
     def forward_copy(self, addresses, env_sender=None):
         self._forward(False, addresses, env_sender)
 
+    def mark_seen(self):
+        self._processor.log("==> Flag as read {0}".format(self.path))
+
     def move(self, maildir, **kwargs):
         maildir = self.processor.list_path(maildir,
                                            sep=self.processor.separator)
@@ -80,6 +83,9 @@ class DryRunMaildir(MaildirMail):
 
     def forward_copy(self, addresses, env_sender=None):
         self._forward(False, addresses, env_sender)
+
+    def mark_seen(self):
+        self._processor.log("==> Flag as read {0}".format(self.path))
 
     def move(self, maildir, **kwargs):
         maildir = self.processor.list_path(maildir,
